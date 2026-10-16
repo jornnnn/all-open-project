@@ -1,0 +1,698 @@
+# Programas de pago o cerrados y sus alternativas open source.
+#
+# Cada programa genera /alternativas-a/{id} y /en/alternatives-to/{slug_en o id}.
+# - nombre_en y slug_en: solo si cambian en inglés.
+# - subtemas: dónde encaja el programa; se usan para los repos sin topics conocidos.
+# - alternativas: repos de GitHub (propietario/repo). La semilla comprueba que existen, que no son
+#   forks y que no están archivados. El orden no es un ranking: la web ordena por puntuación.
+# - No se incluyen proyectos cuya copia en GitHub está parada aunque el proyecto siga vivo en otra
+#   forja (Inkscape, digiKam), porque saldrían como abandonados.
+
+version: 1
+programas:
+  # --- Fotos y diseño ---
+  - id: photoshop
+    nombre: Adobe Photoshop
+    subtemas: [edicion-de-fotos]
+    alternativas: [GNOME/gimp, KDE/krita, PintaProject/Pinta, GraphiteEditor/Graphite]
+  - id: lightroom
+    nombre: Adobe Lightroom
+    subtemas: [edicion-de-fotos]
+    alternativas: [darktable-org/darktable, RawTherapee/RawTherapee]
+  - id: illustrator
+    nombre: Adobe Illustrator
+    subtemas: [dibujo-y-diseno]
+    alternativas: [GraphiteEditor/Graphite, penpot/penpot]
+  - id: figma
+    nombre: Figma
+    subtemas: [dibujo-y-diseno]
+    alternativas: [penpot/penpot]
+  - id: canva
+    nombre: Canva
+    subtemas: [dibujo-y-diseno]
+    alternativas: [penpot/penpot]
+  - id: indesign
+    nombre: Adobe InDesign
+    subtemas: [dibujo-y-diseno]
+    alternativas: [scribusproject/scribus]
+  - id: procreate
+    nombre: Procreate
+    subtemas: [dibujo-y-diseno]
+    alternativas: [KDE/krita, mypaint/mypaint]
+  - id: aseprite
+    nombre: Aseprite
+    subtemas: [dibujo-y-diseno]
+    alternativas: [Orama-Interactive/Pixelorama, LibreSprite/LibreSprite]
+  - id: topaz-photo-ai
+    nombre: Topaz Photo AI
+    subtemas: [imagenes-y-video-con-ia]
+    alternativas: [upscayl/upscayl]
+  - id: google-fotos
+    slug_en: google-photos
+    nombre: Google Fotos
+    nombre_en: Google Photos
+    subtemas: [ver-y-organizar-fotos]
+    alternativas: [immich-app/immich, photoprism/photoprism, ente/ente]
+  - id: autocad
+    nombre: AutoCAD
+    subtemas: [3d-y-cad]
+    alternativas: [LibreCAD/LibreCAD, FreeCAD/FreeCAD]
+  - id: solidworks
+    nombre: SolidWorks
+    subtemas: [3d-y-cad]
+    alternativas: [FreeCAD/FreeCAD, solvespace/solvespace, openscad/openscad]
+  - id: fusion
+    nombre: Autodesk Fusion
+    subtemas: [3d-y-cad]
+    alternativas: [FreeCAD/FreeCAD, openscad/openscad]
+  - id: sketchup
+    nombre: SketchUp
+    subtemas: [3d-y-cad]
+    alternativas: [FreeCAD/FreeCAD, blender/blender]
+  - id: maya
+    nombre: Autodesk Maya
+    subtemas: [3d-y-cad]
+    alternativas: [blender/blender]
+  - id: cinema-4d
+    nombre: Cinema 4D
+    subtemas: [3d-y-cad]
+    alternativas: [blender/blender]
+  - id: altium-designer
+    nombre: Altium Designer
+    subtemas: [3d-y-cad]
+    alternativas: [KiCad/kicad-source-mirror]
+  - id: substance-painter
+    nombre: Adobe Substance 3D Painter
+    subtemas: [3d-y-cad]
+    alternativas: [armory3d/armorpaint]
+
+  # --- Vídeo ---
+  - id: premiere-pro
+    nombre: Adobe Premiere Pro
+    subtemas: [edicion-de-video]
+    alternativas: [KDE/kdenlive, mltframework/shotcut, OpenShot/openshot-qt]
+  - id: final-cut-pro
+    nombre: Final Cut Pro
+    subtemas: [edicion-de-video]
+    alternativas: [KDE/kdenlive, mltframework/shotcut, OpenShot/openshot-qt]
+  - id: capcut
+    nombre: CapCut
+    subtemas: [edicion-de-video]
+    alternativas: [OpenCut-app/OpenCut, mltframework/shotcut, KDE/kdenlive, OpenShot/openshot-qt]
+  - id: vegas-pro
+    nombre: Vegas Pro
+    subtemas: [edicion-de-video]
+    alternativas: [KDE/kdenlive, mltframework/shotcut]
+  - id: after-effects
+    nombre: Adobe After Effects
+    subtemas: [edicion-de-video]
+    alternativas: [NatronGitHub/Natron, blender/blender]
+  - id: adobe-animate
+    nombre: Adobe Animate
+    subtemas: [edicion-de-video]
+    alternativas: [opentoonz/opentoonz, pencil2d/pencil, synfig/synfig]
+  - id: camtasia
+    nombre: Camtasia
+    subtemas: [grabar-pantalla]
+    alternativas: [obsproject/obs-studio, CapSoftware/Cap, ShareX/ShareX]
+  - id: loom
+    nombre: Loom
+    subtemas: [grabar-pantalla]
+    alternativas: [CapSoftware/Cap, obsproject/obs-studio]
+  - id: bandicam
+    nombre: Bandicam
+    subtemas: [grabar-pantalla]
+    alternativas: [obsproject/obs-studio, ShareX/ShareX]
+  - id: plex
+    nombre: Plex
+    subtemas: [servidor-multimedia]
+    alternativas: [jellyfin/jellyfin, xbmc/xbmc]
+  - id: netflix
+    nombre: Netflix
+    subtemas: [servidor-multimedia]
+    alternativas: [jellyfin/jellyfin]
+  - id: 4k-video-downloader
+    nombre: 4K Video Downloader
+    subtemas: [convertir-y-descargar-video]
+    alternativas: [yt-dlp/yt-dlp, aandrew-me/ytDownloader, JunkFood02/Seal]
+
+  # --- Música ---
+  - id: fl-studio
+    nombre: FL Studio
+    subtemas: [musica-y-audio]
+    alternativas: [LMMS/lmms, zrythm/zrythm, Ardour/ardour]
+  - id: ableton-live
+    nombre: Ableton Live
+    subtemas: [musica-y-audio]
+    alternativas: [LMMS/lmms, Ardour/ardour, zrythm/zrythm]
+  - id: logic-pro
+    nombre: Logic Pro
+    subtemas: [musica-y-audio]
+    alternativas: [Ardour/ardour, LMMS/lmms]
+  - id: garageband
+    nombre: GarageBand
+    subtemas: [musica-y-audio]
+    alternativas: [LMMS/lmms, audacity/audacity]
+  - id: pro-tools
+    nombre: Pro Tools
+    subtemas: [musica-y-audio]
+    alternativas: [Ardour/ardour, audacity/audacity]
+  - id: adobe-audition
+    nombre: Adobe Audition
+    subtemas: [musica-y-audio]
+    alternativas: [audacity/audacity]
+  - id: sibelius
+    nombre: Sibelius
+    subtemas: [musica-y-audio]
+    alternativas: [musescore/MuseScore]
+  - id: guitar-pro
+    nombre: Guitar Pro
+    subtemas: [musica-y-audio]
+    alternativas: [helge17/tuxguitar]
+  - id: serato-dj
+    nombre: Serato DJ
+    subtemas: [musica-y-audio]
+    alternativas: [mixxxdj/mixxx]
+  - id: spotify
+    nombre: Spotify
+    subtemas: [servidor-multimedia]
+    alternativas: [navidrome/navidrome, jellyfin/jellyfin]
+
+  # --- IA ---
+  - id: chatgpt
+    nombre: ChatGPT
+    subtemas: [chat-con-ia]
+    alternativas: [open-webui/open-webui, ollama/ollama, janhq/jan, LibreChat-AI/LibreChat, lobehub/lobehub]
+  - id: midjourney
+    nombre: Midjourney
+    subtemas: [imagenes-y-video-con-ia]
+    alternativas: [Comfy-Org/ComfyUI, invoke-ai/InvokeAI]
+  - id: github-copilot
+    nombre: GitHub Copilot
+    subtemas: [programar-con-ia]
+    alternativas: [continuedev/continue, cline/cline, Aider-AI/aider, TabbyML/tabby]
+  - id: cursor
+    nombre: Cursor
+    subtemas: [programar-con-ia]
+    alternativas: [zed-industries/zed, cline/cline, continuedev/continue]
+  - id: otter-ai
+    nombre: Otter.ai
+    subtemas: [voz-con-ia]
+    alternativas: [chidiwilliams/buzz, Zackriya-Solutions/meetily, ggml-org/whisper.cpp, openai/whisper]
+  - id: elevenlabs
+    nombre: ElevenLabs
+    subtemas: [voz-con-ia]
+    alternativas: [fishaudio/fish-speech, SWivid/F5-TTS, RVC-Boss/GPT-SoVITS]
+  - id: perplexity
+    nombre: Perplexity
+    subtemas: [chat-con-ia]
+    alternativas: [ItzCrazyKns/Vane]
+  - id: notebooklm
+    nombre: NotebookLM
+    subtemas: [chat-con-ia]
+    alternativas: [lfnovo/open-notebook]
+
+  # --- Oficina ---
+  - id: microsoft-office
+    nombre: Microsoft Office
+    subtemas: [ofimatica]
+    alternativas: [LibreOffice/core, ONLYOFFICE/DesktopEditors]
+  - id: word
+    nombre: Microsoft Word
+    subtemas: [ofimatica]
+    alternativas: [LibreOffice/core, ONLYOFFICE/DesktopEditors]
+  - id: excel
+    nombre: Microsoft Excel
+    subtemas: [ofimatica]
+    alternativas: [LibreOffice/core, ONLYOFFICE/DesktopEditors, gristlabs/grist-core]
+  - id: powerpoint
+    nombre: Microsoft PowerPoint
+    subtemas: [ofimatica]
+    alternativas: [LibreOffice/core, ONLYOFFICE/DesktopEditors, slidevjs/slidev, hakimel/reveal.js]
+  - id: google-docs
+    nombre: Google Docs
+    subtemas: [ofimatica]
+    alternativas: [cryptpad/cryptpad, ONLYOFFICE/DocumentServer, ether/etherpad, nextcloud/server]
+  - id: grammarly
+    nombre: Grammarly
+    subtemas: [ofimatica]
+    alternativas: [languagetool-org/languagetool, Automattic/harper]
+  - id: scrivener
+    nombre: Scrivener
+    subtemas: [ofimatica]
+    alternativas: [saga-soft/novelWriter, olivierkes/manuskript]
+  - id: adobe-acrobat
+    nombre: Adobe Acrobat
+    subtemas: [pdf-y-libros]
+    alternativas: [Stirling-Tools/Stirling-PDF, sumatrapdfreader/sumatrapdf, pdfarranger/pdfarranger, KDE/okular]
+  - id: kindle
+    nombre: Kindle
+    subtemas: [pdf-y-libros]
+    alternativas: [kovidgoyal/calibre, koreader/koreader, readest/readest, johnfactotum/foliate]
+  - id: notion
+    nombre: Notion
+    subtemas: [notas-y-wikis]
+    alternativas: [AppFlowy-IO/AppFlowy, toeverything/AFFiNE, anyproto/anytype-ts, docmost/docmost]
+  - id: evernote
+    nombre: Evernote
+    subtemas: [notas-y-wikis]
+    alternativas: [laurent22/joplin, streetwriters/notesnook, siyuan-note/siyuan, TriliumNext/Trilium]
+  - id: obsidian
+    nombre: Obsidian
+    subtemas: [notas-y-wikis]
+    alternativas: [logseq/logseq, siyuan-note/siyuan, foambubble/foam]
+  - id: onenote
+    nombre: Microsoft OneNote
+    subtemas: [notas-y-wikis]
+    alternativas: [laurent22/joplin, siyuan-note/siyuan, xournalpp/xournalpp]
+  - id: goodnotes
+    nombre: GoodNotes
+    subtemas: [notas-y-wikis]
+    alternativas: [xournalpp/xournalpp, saber-notes/saber]
+  - id: typora
+    nombre: Typora
+    subtemas: [notas-y-wikis]
+    alternativas: [marktext/marktext, Zettlr/Zettlr]
+  - id: trello
+    nombre: Trello
+    subtemas: [tareas-y-proyectos]
+    alternativas: [wekan/wekan, plankanban/planka, kanboard/kanboard]
+  - id: jira
+    nombre: Jira
+    subtemas: [tareas-y-proyectos]
+    alternativas: [makeplane/plane, opf/openproject, hcengineering/platform, Leantime/leantime]
+  - id: asana
+    nombre: Asana
+    subtemas: [tareas-y-proyectos]
+    alternativas: [makeplane/plane, opf/openproject, Leantime/leantime]
+  - id: todoist
+    nombre: Todoist
+    subtemas: [tareas-y-proyectos]
+    alternativas: [super-productivity/super-productivity, go-vikunja/vikunja, tasks/tasks]
+  - id: zapier
+    nombre: Zapier
+    subtemas: [automatizacion]
+    alternativas: [n8n-io/n8n, activepieces/activepieces, huginn/huginn, windmill-labs/windmill]
+  - id: make
+    nombre: Make (antes Integromat)
+    nombre_en: Make (formerly Integromat)
+    subtemas: [automatizacion]
+    alternativas: [n8n-io/n8n, activepieces/activepieces, windmill-labs/windmill]
+  - id: airtable
+    nombre: Airtable
+    subtemas: [automatizacion]
+    alternativas: [nocodb/nocodb, teableio/teable, gristlabs/grist-core]
+  - id: retool
+    nombre: Retool
+    subtemas: [automatizacion]
+    alternativas: [appsmithorg/appsmith, ToolJet/ToolJet, Budibase/budibase]
+  - id: typeform
+    nombre: Typeform
+    subtemas: [automatizacion]
+    alternativas: [formbricks/formbricks, heyform/heyform, LimeSurvey/LimeSurvey]
+  - id: formularios-de-google
+    slug_en: google-forms
+    nombre: Formularios de Google
+    nombre_en: Google Forms
+    subtemas: [automatizacion]
+    alternativas: [formbricks/formbricks, heyform/heyform, LimeSurvey/LimeSurvey]
+  - id: miro
+    nombre: Miro
+    subtemas: [pizarras-y-diagramas]
+    alternativas: [excalidraw/excalidraw, jgraph/drawio-desktop, toeverything/AFFiNE]
+  - id: visio
+    nombre: Microsoft Visio
+    subtemas: [pizarras-y-diagramas]
+    alternativas: [jgraph/drawio-desktop, mermaid-js/mermaid]
+  - id: xmind
+    nombre: XMind
+    subtemas: [pizarras-y-diagramas]
+    alternativas: [freeplane/freeplane, wanglin2/mind-map]
+  - id: quickbooks
+    nombre: QuickBooks
+    subtemas: [empresa-y-finanzas]
+    alternativas: [Gnucash/gnucash, akaunting/akaunting, frappe/erpnext, InvoiceShelf/InvoiceShelf]
+  - id: sap
+    nombre: SAP
+    subtemas: [empresa-y-finanzas]
+    alternativas: [odoo/odoo, frappe/erpnext, Dolibarr/dolibarr]
+  - id: salesforce
+    nombre: Salesforce
+    subtemas: [empresa-y-finanzas]
+    alternativas: [twentyhq/twenty, espocrm/espocrm, SuiteCRM/SuiteCRM]
+  - id: hubspot
+    nombre: HubSpot
+    subtemas: [empresa-y-finanzas]
+    alternativas: [twentyhq/twenty, espocrm/espocrm, mautic/mautic]
+  - id: ynab
+    nombre: YNAB
+    subtemas: [empresa-y-finanzas]
+    alternativas: [actualbudget/actual, firefly-iii/firefly-iii]
+  - id: docusign
+    nombre: DocuSign
+    subtemas: [empresa-y-finanzas]
+    alternativas: [documenso/documenso, docusealco/docuseal, OpenSignLabs/OpenSign]
+  - id: zendesk
+    nombre: Zendesk
+    subtemas: [empresa-y-finanzas]
+    alternativas: [zammad/zammad, freescout-help-desk/freescout, chatwoot/chatwoot]
+  - id: intercom
+    nombre: Intercom
+    subtemas: [empresa-y-finanzas]
+    alternativas: [chatwoot/chatwoot]
+
+  # --- Internet ---
+  - id: google-chrome
+    nombre: Google Chrome
+    subtemas: [navegadores]
+    alternativas: [mozilla-firefox/firefox, brave/brave-browser, zen-browser/desktop, ungoogled-software/ungoogled-chromium]
+  - id: outlook
+    nombre: Microsoft Outlook
+    subtemas: [correo-y-calendario]
+    alternativas: [Foundry376/Mailspring, thunderbird/thunderbird-android]
+  - id: calendly
+    nombre: Calendly
+    subtemas: [correo-y-calendario]
+    alternativas: [calcom/cal.diy, alextselegidis/easyappointments]
+  - id: doodle
+    nombre: Doodle
+    subtemas: [correo-y-calendario]
+    alternativas: [lukevella/rallly]
+  - id: mailchimp
+    nombre: Mailchimp
+    subtemas: [correo-y-calendario]
+    alternativas: [knadh/listmonk, mautic/mautic]
+  - id: whatsapp
+    nombre: WhatsApp
+    subtemas: [mensajeria]
+    alternativas: [signalapp/Signal-Desktop, signalapp/Signal-Android, element-hq/element-web, simplex-chat/simplex-chat]
+  - id: slack
+    nombre: Slack
+    subtemas: [mensajeria]
+    alternativas: [mattermost/mattermost, RocketChat/Rocket.Chat, zulip/zulip, element-hq/element-web]
+  - id: microsoft-teams
+    nombre: Microsoft Teams
+    subtemas: [mensajeria]
+    alternativas: [mattermost/mattermost, RocketChat/Rocket.Chat, jitsi/jitsi-meet]
+  - id: zoom
+    nombre: Zoom
+    subtemas: [mensajeria]
+    alternativas: [jitsi/jitsi-meet, bigbluebutton/bigbluebutton]
+  - id: discord
+    nombre: Discord
+    subtemas: [mensajeria]
+    alternativas: [element-hq/element-web, mumble-voip/mumble]
+  - id: internet-download-manager
+    nombre: Internet Download Manager
+    subtemas: [descargas]
+    alternativas: [amir1376/ab-download-manager, agalwood/Motrix, aria2/aria2]
+  - id: utorrent
+    nombre: µTorrent
+    subtemas: [descargas]
+    alternativas: [qbittorrent/qBittorrent, transmission/transmission]
+  - id: wetransfer
+    nombre: WeTransfer
+    subtemas: [descargas]
+    alternativas: [schollz/croc, psi-4ward/psitransfer]
+  - id: airdrop
+    nombre: AirDrop
+    subtemas: [descargas]
+    alternativas: [localsend/localsend, schlagmichdoch/PairDrop]
+  - id: feedly
+    nombre: Feedly
+    subtemas: [rss-y-marcadores]
+    alternativas: [FreshRSS/FreshRSS, miniflux/v2, Ranchero-Software/NetNewsWire, yang991178/fluent-reader]
+  - id: pocket
+    nombre: Pocket
+    subtemas: [rss-y-marcadores]
+    alternativas: [wallabag/wallabag, karakeep-app/karakeep, linkwarden/linkwarden]
+  - id: twitter
+    nombre: X (Twitter)
+    subtemas: [redes-sociales]
+    alternativas: [mastodon/mastodon, bluesky-social/social-app, misskey-dev/misskey]
+  - id: instagram
+    nombre: Instagram
+    subtemas: [redes-sociales]
+    alternativas: [pixelfed/pixelfed]
+  - id: reddit
+    nombre: Reddit
+    subtemas: [redes-sociales]
+    alternativas: [LemmyNet/lemmy]
+  - id: buscador-de-google
+    slug_en: google-search
+    nombre: Buscador de Google
+    nombre_en: Google Search
+    subtemas: [privacidad-y-anuncios]
+    alternativas: [searxng/searxng]
+  - id: google-maps
+    nombre: Google Maps
+    subtemas: [mapas]
+    alternativas: [osmandapp/OsmAnd, organicmaps/organicmaps]
+  - id: substack
+    nombre: Substack
+    subtemas: [webs-y-tiendas]
+    alternativas: [TryGhost/Ghost]
+
+  # --- Sistema ---
+  - id: winrar
+    nombre: WinRAR
+    subtemas: [archivos-y-copias]
+    alternativas: [ip7z/7zip, M2Team/NanaZip, peazip/PeaZip]
+  - id: winzip
+    nombre: WinZip
+    subtemas: [archivos-y-copias]
+    alternativas: [ip7z/7zip, M2Team/NanaZip, peazip/PeaZip]
+  - id: acronis-true-image
+    nombre: Acronis True Image
+    subtemas: [archivos-y-copias]
+    alternativas: [rescuezilla/rescuezilla, duplicati/duplicati, kopia/kopia, restic/restic]
+  - id: ultraiso
+    nombre: UltraISO
+    subtemas: [archivos-y-copias]
+    alternativas: [ventoy/Ventoy, pbatard/rufus, balena-io/etcher]
+  - id: total-commander
+    nombre: Total Commander
+    subtemas: [archivos-y-copias]
+    alternativas: [files-community/Files, doublecmd/doublecmd]
+  - id: ccleaner
+    nombre: CCleaner
+    subtemas: [limpieza-y-rendimiento]
+    alternativas: [bleachbit/bleachbit, qarmin/czkawka, tw93/Mole]
+  - id: cleanmymac
+    nombre: CleanMyMac
+    subtemas: [limpieza-y-rendimiento]
+    alternativas: [tw93/Mole, alienator88/Pearcleaner]
+  - id: snagit
+    nombre: Snagit
+    subtemas: [utilidades]
+    alternativas: [ShareX/ShareX, flameshot-org/flameshot, greenshot/greenshot]
+  - id: magnet
+    nombre: Magnet
+    subtemas: [utilidades]
+    alternativas: [rxhanson/Rectangle, nikitabobko/AeroSpace]
+  - id: teamviewer
+    nombre: TeamViewer
+    subtemas: [escritorio-remoto]
+    alternativas: [rustdesk/rustdesk, Ylianst/MeshCentral]
+  - id: anydesk
+    nombre: AnyDesk
+    subtemas: [escritorio-remoto]
+    alternativas: [rustdesk/rustdesk]
+  - id: vmware-workstation
+    nombre: VMware Workstation
+    subtemas: [escritorio-remoto]
+    alternativas: [qemu/qemu, quickemu-project/quickemu]
+  - id: parallels-desktop
+    nombre: Parallels Desktop
+    subtemas: [escritorio-remoto]
+    alternativas: [utmapp/UTM]
+
+  # --- Juegos ---
+  - id: minecraft
+    nombre: Minecraft
+    subtemas: [juegos-libres]
+    alternativas: [luanti-org/luanti]
+  - id: unity
+    nombre: Unity
+    subtemas: [motores-de-juego]
+    alternativas: [godotengine/godot, bevyengine/bevy, stride3d/stride]
+  - id: unreal-engine
+    nombre: Unreal Engine
+    subtemas: [motores-de-juego]
+    alternativas: [godotengine/godot, o3de/o3de]
+  - id: gamemaker
+    nombre: GameMaker
+    subtemas: [motores-de-juego]
+    alternativas: [4ian/GDevelop, godotengine/godot]
+  - id: epic-games-launcher
+    nombre: Epic Games Launcher
+    subtemas: [herramientas-para-jugar]
+    alternativas: [Heroic-Games-Launcher/HeroicGamesLauncher, lutris/lutris, JosefNemec/Playnite]
+  - id: parsec
+    nombre: Parsec
+    subtemas: [herramientas-para-jugar]
+    alternativas: [LizardByte/Sunshine, moonlight-stream/moonlight-qt]
+
+  # --- Seguridad ---
+  - id: 1password
+    nombre: 1Password
+    subtemas: [contrasenas-y-cifrado]
+    alternativas: [bitwarden/clients, keepassxreboot/keepassxc, dani-garcia/vaultwarden]
+  - id: lastpass
+    nombre: LastPass
+    subtemas: [contrasenas-y-cifrado]
+    alternativas: [bitwarden/clients, keepassxreboot/keepassxc]
+  - id: authy
+    nombre: Authy
+    subtemas: [contrasenas-y-cifrado]
+    alternativas: [beemdevelopment/Aegis, ente/ente, twofas/2fas-android]
+  - id: adguard
+    nombre: AdGuard
+    subtemas: [privacidad-y-anuncios]
+    alternativas: [gorhill/uBlock, pi-hole/pi-hole, AdguardTeam/AdGuardHome]
+  - id: glasswire
+    nombre: GlassWire
+    subtemas: [privacidad-y-anuncios]
+    alternativas: [henrypp/simplewall, safing/portmaster]
+  - id: little-snitch
+    nombre: Little Snitch
+    subtemas: [privacidad-y-anuncios]
+    alternativas: [objective-see/LuLu, evilsocket/opensnitch]
+  - id: hamachi
+    nombre: LogMeIn Hamachi
+    subtemas: [vpn-y-redes]
+    alternativas: [tailscale/tailscale, juanfont/headscale, netbirdio/netbird]
+  - id: okta
+    nombre: Okta
+    subtemas: [identidad-y-acceso]
+    alternativas: [keycloak/keycloak, goauthentik/authentik, zitadel/zitadel, logto-io/logto]
+  - id: ida-pro
+    nombre: IDA Pro
+    subtemas: [hacking-etico]
+    alternativas: [NationalSecurityAgency/ghidra, rizinorg/cutter, radareorg/radare2, morluto/rea]
+  - id: burp-suite
+    nombre: Burp Suite
+    subtemas: [hacking-etico]
+    alternativas: [zaproxy/zaproxy, mitmproxy/mitmproxy]
+
+  # --- Autoalojado ---
+  - id: dropbox
+    nombre: Dropbox
+    subtemas: [nube-personal]
+    alternativas: [nextcloud/server, syncthing/syncthing, haiwen/seafile, owncloud/ocis]
+  - id: google-drive
+    nombre: Google Drive
+    subtemas: [nube-personal]
+    alternativas: [nextcloud/server, haiwen/seafile, owncloud/ocis]
+  - id: alexa
+    nombre: Amazon Alexa
+    subtemas: [domotica]
+    alternativas: [home-assistant/core, openhab/openhab-core]
+  - id: shopify
+    nombre: Shopify
+    subtemas: [webs-y-tiendas]
+    alternativas: [woocommerce/woocommerce, PrestaShop/PrestaShop, medusajs/medusa, saleor/saleor]
+  - id: wix
+    nombre: Wix
+    subtemas: [webs-y-tiendas]
+    alternativas: [WordPress/WordPress, TryGhost/Ghost, webstudio-is/webstudio]
+
+  # --- Programar ---
+  - id: postman
+    nombre: Postman
+    subtemas: [backend-y-apis]
+    alternativas: [usebruno/bruno, hoppscotch/hoppscotch, Kong/insomnia]
+  - id: firebase
+    nombre: Firebase
+    subtemas: [backend-y-apis]
+    alternativas: [supabase/supabase, appwrite/appwrite, pocketbase/pocketbase]
+  - id: sublime-text
+    nombre: Sublime Text
+    subtemas: [editores-de-codigo]
+    alternativas: [zed-industries/zed, microsoft/vscode, VSCodium/vscodium]
+  - id: docker-desktop
+    nombre: Docker Desktop
+    subtemas: [devops]
+    alternativas: [podman-desktop/podman-desktop, abiosoft/colima, rancher-sandbox/rancher-desktop]
+  - id: heroku
+    nombre: Heroku
+    subtemas: [devops]
+    alternativas: [coollabsio/coolify, dokku/dokku, caprover/caprover, Dokploy/dokploy]
+  - id: vercel
+    nombre: Vercel
+    subtemas: [devops]
+    alternativas: [coollabsio/coolify, Dokploy/dokploy]
+  - id: datadog
+    nombre: Datadog
+    subtemas: [devops]
+    alternativas: [SigNoz/signoz, grafana/grafana, openobserve/openobserve]
+  - id: uptimerobot
+    nombre: UptimeRobot
+    subtemas: [devops]
+    alternativas: [louislam/uptime-kuma, TwiN/gatus]
+
+  # --- Datos ---
+  - id: google-analytics
+    nombre: Google Analytics
+    subtemas: [analitica-y-paneles]
+    alternativas: [plausible/analytics, umami-software/umami, matomo-org/matomo, PostHog/posthog]
+  - id: power-bi
+    nombre: Power BI
+    subtemas: [analitica-y-paneles]
+    alternativas: [apache/superset, metabase/metabase, lightdash/lightdash]
+  - id: tableau
+    nombre: Tableau
+    subtemas: [analitica-y-paneles]
+    alternativas: [apache/superset, metabase/metabase]
+  - id: algolia
+    nombre: Algolia
+    subtemas: [bases-de-datos]
+    alternativas: [meilisearch/meilisearch, typesense/typesense]
+  - id: navicat
+    nombre: Navicat
+    subtemas: [bases-de-datos]
+    alternativas: [dbeaver/dbeaver, beekeeper-studio/beekeeper-studio, dbgate/dbgate]
+  - id: spss
+    nombre: IBM SPSS
+    subtemas: [ciencia-de-datos]
+    alternativas: [jasp-stats/jasp-desktop, jamovi/jamovi]
+  - id: matlab
+    nombre: MATLAB
+    subtemas: [ciencia-de-datos]
+    alternativas: [gnu-octave/octave, JuliaLang/julia]
+  - id: arcgis
+    nombre: ArcGIS
+    subtemas: [mapas]
+    alternativas: [qgis/QGIS]
+
+  # --- Aprender ---
+  - id: deepl
+    nombre: DeepL
+    subtemas: [idiomas-y-traduccion]
+    alternativas: [LibreTranslate/LibreTranslate, argosopentech/argos-translate]
+  - id: google-traductor
+    slug_en: google-translate
+    nombre: Google Traductor
+    nombre_en: Google Translate
+    subtemas: [idiomas-y-traduccion]
+    alternativas: [LibreTranslate/LibreTranslate, argosopentech/argos-translate]
+  - id: quizlet
+    nombre: Quizlet
+    subtemas: [idiomas-y-traduccion]
+    alternativas: [ankitects/anki, ankidroid/Anki-Android]
+  - id: mendeley
+    nombre: Mendeley
+    subtemas: [ciencia-e-investigacion]
+    alternativas: [zotero/zotero, JabRef/jabref]
+  - id: endnote
+    nombre: EndNote
+    subtemas: [ciencia-e-investigacion]
+    alternativas: [zotero/zotero, JabRef/jabref]
+  - id: mathematica
+    nombre: Mathematica
+    subtemas: [ciencia-e-investigacion]
+    alternativas: [sagemath/sage, sympy/sympy]
+  - id: blackboard
+    nombre: Blackboard
+    subtemas: [educacion]
+    alternativas: [moodle/moodle, instructure/canvas-lms]

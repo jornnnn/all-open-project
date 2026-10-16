@@ -1,0 +1,26 @@
+{
+  "name": "all-open-project",
+  "private": true,
+  "type": "module",
+  "description": "Lo mejor del open source, explicado y verificado.",
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "build": "pnpm -r --if-present run build",
+    "semilla": "pnpm --filter @aop/jobs run semilla"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "^24.19.2",
+    "typescript": "7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
+  }
+}

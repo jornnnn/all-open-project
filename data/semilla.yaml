@@ -1,0 +1,163 @@
+# Cómo se genera la lista semilla: jobs/semilla.ts → data/semilla.generada.json.
+#
+# 1. Para cada subtema se buscan en GitHub sus topics (taxonomia.yaml) y las consultas extra de
+#    «busquedas», ordenadas por estrellas, sin forks ni archivados.
+# 2. Entran siempre las alternativas (alternativas.yaml) y las altas de abajo.
+# 3. Entran los primeros de cada subtema (cupo_por_subtema), para que ningún tema se quede vacío.
+# 4. Hasta llegar al objetivo, entran los candidatos con más estrellas, sean del subtema que sean.
+# 5. Se apartan las listas, los cursos, lo abandonado, lo muy nuevo y lo excluido abajo.
+
+version: 1
+
+ajustes:
+  # Proyectos que se buscan; fuera de mínimo y máximo, el robot falla.
+  objetivo: 3000
+  minimo: 2500
+  maximo: 3500
+  estrellas_minimas: 150
+  # Con más meses sin cambios, un repo de las búsquedas está abandonado y no entra.
+  meses_sin_actividad: 12
+  # Los repos más nuevos son cosa del radar (Fase C): entran al catálogo si se consolidan.
+  antiguedad_minima_dias: 90
+  cupo_por_subtema: 35
+  resultados_por_busqueda: 50
+
+# Consultas extra para un subtema, con la sintaxis de búsqueda de GitHub.
+# Ejemplo:  - subtema: edicion-de-fotos
+#             consultas: ['"photo editor" in:name,description']
+busquedas: []
+
+# Proyectos que entran siempre, aunque no salgan en las búsquedas. Casi todos son referentes que en
+# GitHub no tienen topics (o no los que llevan a su tema), así que las búsquedas no los encuentran.
+altas:
+  # --- IA ---
+  - { repo: anthropics/claude-code, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: openai/codex, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: anomalyco/opencode, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: OpenHands/OpenHands, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: github/spec-kit, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: bmad-code-org/BMAD-METHOD, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: Fission-AI/OpenSpec, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: abi/screenshot-to-code, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: Pythagora-io/gpt-pilot, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: earendil-works/pi, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: musistudio/claude-code-router, subtemas: [programar-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: ggml-org/llama.cpp, subtemas: [ia-en-tu-ordenador], motivo: Referente sin topics de su tema }
+  - { repo: exo-explore/exo, subtemas: [ia-en-tu-ordenador], motivo: Referente sin topics de su tema }
+  - { repo: oobabooga/textgen, subtemas: [ia-en-tu-ordenador], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/BitNet, subtemas: [ia-en-tu-ordenador], motivo: Referente sin topics de su tema }
+  - { repo: zylon-ai/private-gpt, subtemas: [chat-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: SillyTavern/SillyTavern, subtemas: [chat-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: openclaw/openclaw, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: FoundationAgents/OpenManus, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: langchain-ai/langgraph, subtemas: [agentes-de-ia], motivo: Referente que el cupo dejaba fuera }
+  - { repo: danielmiessler/Fabric, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: stanfordnlp/dspy, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/graphrag, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: HKUDS/LightRAG, subtemas: [agentes-de-ia], motivo: Referente que el cupo dejaba fuera }
+  - { repo: OpenBMB/ChatDev, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: bytedance/UI-TARS-desktop, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: CopilotKit/CopilotKit, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: agno-agi/agno, subtemas: [agentes-de-ia], motivo: Referente que el cupo dejaba fuera }
+  - { repo: vercel-labs/agent-browser, subtemas: [agentes-de-ia], motivo: Referente sin topics de su tema }
+  - { repo: modelcontextprotocol/servers, subtemas: [mcp-y-skills], motivo: Servidores MCP oficiales; sin topics }
+  - { repo: github/github-mcp-server, subtemas: [mcp-y-skills], motivo: Servidor MCP oficial de GitHub }
+  - { repo: microsoft/playwright-mcp, subtemas: [mcp-y-skills], motivo: Servidor MCP oficial de Playwright }
+  - { repo: obra/superpowers, subtemas: [mcp-y-skills], motivo: Referente sin topics de su tema }
+  - { repo: mattpocock/skills, subtemas: [mcp-y-skills], motivo: Referente sin topics de su tema }
+  - { repo: vercel-labs/skills, subtemas: [mcp-y-skills], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/VibeVoice, subtemas: [voz-con-ia], motivo: Referente sin topics de su tema }
+  - { repo: jax-ml/jax, subtemas: [aprendizaje-automatico], motivo: Referente sin topics de su tema }
+  - { repo: tinygrad/tinygrad, subtemas: [aprendizaje-automatico], motivo: Referente sin topics de su tema }
+  - { repo: facebookresearch/detectron2, subtemas: [aprendizaje-automatico], motivo: Referente sin topics de su tema }
+
+  # --- Programar ---
+  - { repo: react/react, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: vuejs/core, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: remix-run/react-router, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: solidjs/solid, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: preactjs/preact, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: bigskysoftware/htmx, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: mrdoob/three.js, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: TanStack/query, subtemas: [desarrollo-web], motivo: Referente sin topics de su tema }
+  - { repo: expressjs/express, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: fastapi/fastapi, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: gin-gonic/gin, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: gofiber/fiber, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: laravel/framework, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: spring-projects/spring-boot, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: nestjs/nest, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: fastify/fastify, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: dotnet/aspnetcore, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: trpc/trpc, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: socketio/socket.io, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: grpc/grpc, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: typicode/json-server, subtemas: [backend-y-apis], motivo: Referente sin topics de su tema }
+  - { repo: electron/electron, subtemas: [apps-moviles-y-escritorio], motivo: Referente sin topics de su tema }
+  - { repo: wailsapp/wails, subtemas: [apps-moviles-y-escritorio], motivo: Referente sin topics de su tema }
+  - { repo: DioxusLabs/dioxus, subtemas: [apps-moviles-y-escritorio], motivo: Referente sin topics de su tema }
+  - { repo: dcloudio/uni-app, subtemas: [apps-moviles-y-escritorio], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/TypeScript, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: python/cpython, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: swiftlang/swift, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: php/php-src, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: llvm/llvm-project, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: denoland/deno, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: astral-sh/uv, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: jdx/mise, subtemas: [lenguajes], motivo: Referente sin topics de su tema }
+  - { repo: tmux/tmux, subtemas: [terminal], motivo: Referente sin topics de su tema }
+  - { repo: jqlang/jq, subtemas: [terminal], motivo: Referente sin topics de su tema }
+  - { repo: casey/just, subtemas: [terminal], motivo: Referente sin topics de su tema }
+  - { repo: curl/curl, subtemas: [terminal], motivo: Referente sin topics de su tema }
+  - { repo: ghostty-org/ghostty, subtemas: [terminal], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/monaco-editor, subtemas: [editores-de-codigo], motivo: Referente sin topics de su tema }
+  - { repo: jestjs/jest, subtemas: [pruebas-y-calidad], motivo: Referente sin topics de su tema }
+  - { repo: puppeteer/puppeteer, subtemas: [pruebas-y-calidad], motivo: Referente sin topics de su tema }
+  - { repo: SeleniumHQ/selenium, subtemas: [pruebas-y-calidad], motivo: Referente sin topics de su tema }
+  - { repo: docker/compose, subtemas: [devops], motivo: Referente sin topics de su tema }
+  - { repo: ansible/ansible, subtemas: [devops], motivo: Referente sin topics de su tema }
+  - { repo: hashicorp/vault, subtemas: [devops], motivo: Referente sin topics de su tema }
+  - { repo: jesseduffield/lazydocker, subtemas: [devops], motivo: Referente sin topics de su tema }
+  - { repo: backstage/backstage, subtemas: [devops], motivo: Referente sin topics de su tema }
+  - { repo: ueberdosis/tiptap, subtemas: [componentes-y-css], motivo: Referente sin topics de su tema }
+
+  # --- Sistema ---
+  - { repo: torvalds/linux, subtemas: [sistemas-operativos], motivo: Referente sin topics de su tema }
+  - { repo: omacom/omarchy, subtemas: [sistemas-operativos], motivo: Referente sin topics de su tema }
+  - { repo: topjohnwu/Magisk, subtemas: [sistemas-operativos], motivo: Referente sin topics de su tema }
+  - { repo: hyprwm/Hyprland, subtemas: [utilidades], motivo: Referente sin topics de su tema }
+  - { repo: valinet/ExplorerPatcher, subtemas: [utilidades], motivo: Referente sin topics de su tema }
+  - { repo: ChrisTitusTech/winutil, subtemas: [limpieza-y-rendimiento], motivo: Referente sin topics de su tema }
+  - { repo: aristocratos/btop, subtemas: [limpieza-y-rendimiento], motivo: Referente sin topics de su tema }
+  - { repo: microsoft/WSL, subtemas: [escritorio-remoto], motivo: Referente sin topics de su tema }
+  - { repo: Genymobile/scrcpy, subtemas: [escritorio-remoto], motivo: Referente sin topics de su tema }
+
+  # --- Vídeo, oficina, internet y otros ---
+  - { repo: OpenCut-app/OpenCut, subtemas: [edicion-de-video], motivo: Referente sin topics de su tema }
+  - { repo: remotion-dev/remotion, subtemas: [edicion-de-video], motivo: Referente sin topics de su tema }
+  - { repo: FFmpeg/FFmpeg, subtemas: [convertir-y-descargar-video], motivo: Referente sin topics de su tema }
+  - { repo: reactive-resume/reactive-resume, subtemas: [ofimatica], motivo: Referente sin topics de su tema }
+  - { repo: mozilla/pdf.js, subtemas: [pdf-y-libros], motivo: Referente sin topics de su tema }
+  - { repo: ocrmypdf/OCRmyPDF, subtemas: [pdf-y-libros], motivo: Referente sin topics de su tema }
+  - { repo: datalab-to/marker, subtemas: [pdf-y-libros], motivo: Referente sin topics de su tema }
+  - { repo: rapid7/metasploit-framework, subtemas: [hacking-etico], motivo: Referente sin topics de su tema }
+  - { repo: servo/servo, subtemas: [navegadores], motivo: Referente sin topics de su tema }
+  - { repo: gitroomhq/postiz-app, subtemas: [redes-sociales], motivo: Referente sin topics de su tema }
+  - { repo: NginxProxyManager/nginx-proxy-manager, subtemas: [servidor-en-casa], motivo: Referente sin topics de su tema }
+  - { repo: binwiederhier/ntfy, subtemas: [servidor-en-casa], motivo: Referente sin topics de su tema }
+  - { repo: facebook/docusaurus, subtemas: [webs-y-tiendas], motivo: Referente sin topics de su tema }
+  - { repo: apache/kafka, subtemas: [ingenieria-de-datos], motivo: Referente sin topics de su tema }
+  - { repo: chartjs/Chart.js, subtemas: [analitica-y-paneles], motivo: Referente sin topics de su tema }
+  - { repo: facebookresearch/faiss, subtemas: [bases-de-datos], motivo: Referente sin topics de su tema }
+  - { repo: ZuodaoTech/everyone-can-use-english, subtemas: [idiomas-y-traduccion], motivo: Referente sin topics de su tema }
+  - { repo: Crosstalk-Solutions/project-nomad, subtemas: [educacion], motivo: Referente sin topics de su tema }
+  - { repo: HKUDS/DeepTutor, subtemas: [educacion], motivo: Referente sin topics de su tema }
+
+# Proyectos que no entran aunque salgan en las búsquedas.
+excluir:
+  - repo: massgravel/Microsoft-Activation-Scripts
+    motivo: Activa Windows y Office sin licencia.
+  - repo: xtekky/gpt4free
+    motivo: Usa servicios de IA de terceros sin su permiso.
+  - repo: Abdess/retrobios
+    motivo: Reparte BIOS de consolas protegidas por derechos de autor.

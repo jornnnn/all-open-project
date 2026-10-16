@@ -1,0 +1,21 @@
+{
+  "name": "@aop/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Scripts del robot (Node 24) que ejecutan las GitHub Actions.",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "semilla": "node semilla.ts",
+    "muestra": "node muestra-semilla.ts",
+    "explorar": "node explorar-topics.ts",
+    "licencias": "node actualizar-licencias.ts"
+  },
+  "dependencies": {
+    "@aop/core": "workspace:*",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  }
+}

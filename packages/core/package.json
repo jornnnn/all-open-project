@@ -1,0 +1,19 @@
+{
+  "name": "@aop/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Lógica pura del dominio: estado, licencias, instaladores, temas y esquemas de los datos.",
+  "license": "AGPL-3.0-only",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

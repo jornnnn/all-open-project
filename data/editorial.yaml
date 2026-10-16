@@ -1,0 +1,27 @@
+# Correcciones manuales a los datos que calcula el robot.
+# Este archivo es público: cada corrección queda registrada con su motivo y su fecha.
+#
+# Formato de cada corrección:
+#   - repo: propietario/repo
+#     tipo: estado | licencia | temas | publico | oficial | excluir
+#     valor: …            (según el tipo; «excluir» no lleva valor)
+#     motivo: Por qué se corrige y, si la hay, la fuente.
+#     fecha: AAAA-MM-DD
+#
+# Valores según el tipo:
+#   estado    terminado: el proyecto está acabado a propósito, no abandonado.
+#   licencia  open-source | con-limites | otra | sin-licencia (por ejemplo, cuando GitHub dice «Other»).
+#   temas     lista de subtemas de taxonomia.yaml; el primero es el principal.
+#   publico   usar | programar
+#   oficial   true | false: confirma o niega que sea el repo oficial.
+#   excluir   saca el proyecto del catálogo.
+#
+# Ejemplo:
+#   - repo: propietario/repo
+#     tipo: licencia
+#     valor: con-limites
+#     motivo: Usa la Sustainable Use License, que GitHub no reconoce.
+#     fecha: 2026-10-16
+
+version: 1
+correcciones: []

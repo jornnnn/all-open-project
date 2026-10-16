@@ -1,0 +1,2334 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>All Open Project · maqueta navegable</title>
+<meta name="description" content="Maqueta navegable con datos de ejemplo: lo mejor del open source, explicado y verificado." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f8cff'/%3E%3Cstop offset='1' stop-color='%2349d8e6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M16 7l2.6 6.4L25 16l-6.4 2.6L16 25l-2.6-6.4L7 16l6.4-2.6z' fill='%230b1020'/%3E%3C/svg%3E" />
+<script>
+  // Aplica el tema guardado antes de pintar, para que no parpadee
+  (function () { try { if (localStorage.getItem('aop-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {} })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style type="text/tailwindcss">
+  /* Tema oscuro por defecto; el claro se define más abajo sobrescribiendo las mismas variables */
+  @theme {
+    --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, monospace;
+    --color-bg: oklch(0.145 0.008 260);
+    --color-card: oklch(0.185 0.01 260);
+    --color-ink: oklch(0.965 0.005 260);
+    --color-muted: oklch(0.71 0.018 260);
+    --color-line: oklch(1 0 0 / 0.09);
+    --color-brand: oklch(0.72 0.16 245);
+    --color-cyan: oklch(0.84 0.12 200);
+    --color-on-brand: oklch(0.16 0.03 260);
+    --color-brand-soft: oklch(0.72 0.16 245 / 0.14);
+    --color-ok: oklch(0.79 0.15 155);
+    --color-ok-soft: oklch(0.79 0.15 155 / 0.13);
+    --color-warn: oklch(0.85 0.13 85);
+    --color-warn-soft: oklch(0.85 0.13 85 / 0.13);
+    --color-bad: oklch(0.72 0.18 25);
+    --color-bad-soft: oklch(0.72 0.18 25 / 0.14);
+    --color-done: oklch(0.76 0.012 260);
+    --color-done-soft: oklch(1 0 0 / 0.07);
+    --color-term: oklch(0.12 0.01 260);
+    --color-term-ink: oklch(0.93 0.008 260);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+</style>
+<style>
+  :root { color-scheme: dark; }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --color-bg: oklch(0.985 0.004 260);
+    --color-card: oklch(1 0 0);
+    --color-ink: oklch(0.2 0.02 260);
+    --color-muted: oklch(0.48 0.02 260);
+    --color-line: oklch(0.2 0.02 260 / 0.1);
+    --color-brand: oklch(0.55 0.19 252);
+    --color-cyan: oklch(0.6 0.12 210);
+    --color-on-brand: oklch(0.99 0 0);
+    --color-brand-soft: oklch(0.55 0.19 252 / 0.1);
+    --color-ok: oklch(0.5 0.13 150);
+    --color-ok-soft: oklch(0.5 0.13 150 / 0.12);
+    --color-warn: oklch(0.52 0.11 65);
+    --color-warn-soft: oklch(0.8 0.12 85 / 0.22);
+    --color-bad: oklch(0.52 0.19 27);
+    --color-bad-soft: oklch(0.52 0.19 27 / 0.1);
+    --color-done: oklch(0.47 0.015 260);
+    --color-done-soft: oklch(0.2 0.02 260 / 0.06);
+  }
+  html { scroll-behavior: smooth; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+  details > summary { list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .chev { transform: rotate(90deg); }
+
+  /* Rejilla de fondo que se desvanece hacia abajo */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+  /* Luz ambiental */
+  .glow {
+    background:
+      radial-gradient(closest-side, color-mix(in oklch, var(--color-brand) 50%, transparent), transparent),
+      radial-gradient(closest-side at 72% 60%, color-mix(in oklch, var(--color-cyan) 35%, transparent), transparent);
+    filter: blur(40px);
+    opacity: .55;
+    animation: drift 26s ease-in-out infinite;
+  }
+  html[data-theme="light"] .glow { opacity: .3; }
+  @keyframes drift { 50% { transform: scale(1.08) rotate(4deg); } }
+  /* Grano muy sutil */
+  .grain {
+    position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  html[data-theme="light"] .grain { opacity: .025; }
+  /* Iconos de tarea teñidos con su color */
+  .tint { background: oklch(0.32 0.07 var(--h) / .55); color: oklch(0.85 0.12 var(--h)); }
+  html[data-theme="light"] .tint { background: oklch(0.95 0.04 var(--h)); color: oklch(0.5 0.17 var(--h)); }
+  /* Luz que sigue al cursor en las tarjetas */
+  .spot { position: relative; isolation: isolate; }
+  .spot::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0;
+    background: radial-gradient(22rem circle at var(--x, 50%) var(--y, 50%), color-mix(in oklch, var(--color-brand) 16%, transparent), transparent 60%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .spot:hover::before { opacity: 1; }
+  .spot > * { position: relative; z-index: 1; }
+  /* Entradas y movimientos */
+  .rise { animation: rise .7s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  .fade-in { animation: fade .25s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } }
+  .drawer-in { animation: drawer .28s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes drawer { from { transform: translateX(-100%); } }
+  .marquee { animation: marquee 50s linear infinite; }
+  .marquee:hover { animation-play-state: paused; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  .spark-draw { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: draw 1.4s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  /* ---------- Transiciones ---------- */
+  /* Acordeones que se despliegan con suavidad */
+  :root { interpolate-size: allow-keywords; }
+  details::details-content { block-size: 0; overflow: hidden; transition: block-size .3s cubic-bezier(.16, 1, .3, 1), content-visibility .3s allow-discrete; }
+  details[open]::details-content { block-size: auto; }
+  /* Ventanas, menú lateral y panel de filtros: entrada y salida */
+  .overlay-in { animation: ov-in .2s ease-out both; }
+  @keyframes ov-in { from { opacity: 0; } }
+  .is-closing { animation: ov-out .18s ease-in both; }
+  @keyframes ov-out { to { opacity: 0; } }
+  .is-closing [data-kind="dialog"] { animation: dialog-out .18s ease-in both; }
+  @keyframes dialog-out { to { opacity: 0; transform: translateY(10px) scale(.98); } }
+  .is-closing [data-kind="drawer"] { animation: drawer-out .2s ease-in both; }
+  @keyframes drawer-out { to { transform: translateX(-100%); } }
+  .sheet-in { animation: sheet-in .32s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes sheet-in { from { transform: translateY(100%); } }
+  .is-closing [data-kind="sheet"] { animation: sheet-out .2s ease-in both; }
+  @keyframes sheet-out { to { transform: translateY(100%); } }
+  /* Tarjetas que entran escalonadas al llegar a un listado */
+  .stagger > * { animation: rise .5s cubic-bezier(.16, 1, .3, 1) both; }
+  .stagger > *:nth-child(2) { animation-delay: .04s; }
+  .stagger > *:nth-child(3) { animation-delay: .08s; }
+  .stagger > *:nth-child(4) { animation-delay: .12s; }
+  .stagger > *:nth-child(5) { animation-delay: .16s; }
+  .stagger > *:nth-child(6) { animation-delay: .2s; }
+  .stagger > *:nth-child(7) { animation-delay: .24s; }
+  .stagger > *:nth-child(8) { animation-delay: .28s; }
+  .stagger > *:nth-child(n+9) { animation-delay: .32s; }
+  /* Secciones de la portada que aparecen al hacer scroll (solo CSS) */
+  @keyframes reveal { from { opacity: 0; transform: translateY(28px); } }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reveal { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+    }
+  }
+  /* Cambio de página, filtros, idioma y tema (View Transitions API) */
+  html[data-vt="route"]::view-transition-old(root) { animation: vt-out .16s ease-in both; }
+  html[data-vt="route"]::view-transition-new(root) { animation: vt-in .36s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes vt-out { to { opacity: 0; } }
+  @keyframes vt-in { from { opacity: 0; transform: translateY(12px); } }
+  html[data-vt="filter"]::view-transition-old(root), html[data-vt="filter"]::view-transition-new(root),
+  html[data-vt="lang"]::view-transition-old(root), html[data-vt="lang"]::view-transition-new(root) { animation-duration: .22s; }
+  html[data-vt="theme"]::view-transition-old(root), html[data-vt="theme"]::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  html[data-vt="theme"] .vt-fixed { view-transition-name: none !important; }
+  ::view-transition-group(*.pcard) { animation-duration: .42s; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .spark-draw { stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body class="min-h-svh bg-bg font-sans text-ink antialiased selection:bg-brand/30">
+<div class="grain" aria-hidden="true"></div>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast" role="status" aria-live="polite" class="pointer-events-none fixed inset-x-0 bottom-16 z-[95] flex justify-center px-4 opacity-0 transition-[opacity,transform] duration-200 ease-out" style="transform:translateY(8px)"></div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------------------------------------------------------------------------
+// Utilidades
+// ---------------------------------------------------------------------------
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+const c = (l, ch, h) => `oklch(${l} ${ch} ${(((h % 360) + 360) % 360).toFixed(1)})`;
+const rng = seed => {
+  let h = 2166136261;
+  for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; };
+};
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+const session = {
+  get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
+};
+
+// Transiciones entre estados con la View Transitions API (si el navegador no la tiene
+// o la persona prefiere menos movimiento, el cambio se aplica sin animación)
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+let vtSeq = 0;
+function withTransition(kind, update) {
+  if (!document.startViewTransition || reduceMotion()) { update(); return null; }
+  const root = document.documentElement;
+  const seq = ++vtSeq;
+  root.dataset.vt = kind;
+  const vt = document.startViewTransition(update);
+  // Si una transición se salta (p. ej., dos clics seguidos), no es un error: se ignora en silencio
+  vt.ready.catch(() => {});
+  vt.finished.catch(() => {}).finally(() => { if (seq === vtSeq) delete root.dataset.vt; });
+  return vt;
+}
+
+function detectOS() {
+  const ua = navigator.userAgent || '';
+  if (/Android/i.test(ua)) return 'android';
+  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Windows/i.test(ua)) return 'windows';
+  if (/Macintosh|Mac OS X/i.test(ua)) return 'mac';
+  if (/Linux|X11|CrOS/i.test(ua)) return 'linux';
+  return 'windows';
+}
+
+// Nombres de sistema dentro de una frase («Funciona en tu Windows»)
+const OS = {
+  windows: { es: 'Windows', en: 'Windows' },
+  mac: { es: 'Mac', en: 'Mac' },
+  linux: { es: 'Linux', en: 'Linux' },
+  android: { es: 'Android', en: 'Android' },
+  ios: { es: 'iPhone', en: 'iPhone' },
+  web: { es: 'navegador', en: 'browser' },
+  server: { es: 'servidor', en: 'server' },
+};
+// Nombres de sistema como opción de filtro
+const OS_CAP = {
+  es: { windows: 'Windows', mac: 'Mac', linux: 'Linux', android: 'Android', ios: 'iPhone', web: 'Navegador', server: 'Servidor' },
+  en: { windows: 'Windows', mac: 'Mac', linux: 'Linux', android: 'Android', ios: 'iPhone', web: 'Browser', server: 'Server' },
+};
+const USER_OS = ['windows', 'mac', 'linux', 'android', 'ios'];
+
+const state = {
+  lang: store.get('aop-lang') === 'en' ? 'en' : 'es',
+  theme: store.get('aop-theme') === 'light' ? 'light' : 'dark',
+  os: USER_OS.includes(store.get('aop-os')) ? store.get('aop-os') : detectOS(),
+  alert: session.get('aop-alert') !== 'off',
+  listCtx: null,
+  sheetOpen: false,
+  drawerOpen: false,
+  counted: false,
+  entering: true, // true justo al llegar a una página: activa la entrada escalonada de las tarjetas
+};
+
+// ---------------------------------------------------------------------------
+// Textos (español e inglés)
+// ---------------------------------------------------------------------------
+const T = {
+  es: {
+    home: 'Inicio',
+    provisional: 'nombre provisional',
+    search: 'Buscar',
+    language: 'Idioma',
+    menu: 'Menú',
+    open_menu: 'Abrir menú',
+    main_nav: 'Navegación principal',
+    theme_light: 'Cambiar a modo claro',
+    theme_dark: 'Cambiar a modo oscuro',
+    nav_explore: 'Explorar',
+    nav_trending: 'Tendencias',
+    nav_alts: 'Alternativas',
+    nav_alerts: 'Alertas',
+    nav_agents: 'Para agentes',
+    mega_tasks: 'Por tarea',
+    mega_shortcuts: 'Atajos',
+    mg_ready: os => `Listos para usar en ${os}`,
+    mg_dev: 'Para programadores',
+    mg_all: 'Todo el catálogo',
+    see_catalog: 'Ver todo el catálogo',
+    hero_a: 'Lo mejor del open source,',
+    hero_b: 'explicado y verificado.',
+    hero_sub: 'Programas gratis y herramientas para programar, elegidos con datos en tiempo real. Sin anuncios.',
+    hero_ph: '¿Qué quieres hacer? Editar vídeo, alternativa a Photoshop…',
+    search_ph: 'Editar vídeo, alternativa a Photoshop…',
+    live_badge: 'En vivo · actualizado hace 2 h',
+    qs_photoshop: 'Alternativa a Photoshop',
+    qs_ai: 'IA en tu ordenador',
+    qs_gphotos: 'Tu propio Google Fotos',
+    qs_video: 'Editar vídeo',
+    qs_video_q: 'editar video',
+    st_projects: 'proyectos analizados',
+    st_topics: 'temas',
+    st_week: 'estrellas nuevas esta semana',
+    st_ads: 'anuncios',
+    eb_explore: '// Explorar',
+    explore_home_title: '¿Qué necesitas?',
+    ia_note: 'El tema que más crece esta semana',
+    eb_trending: '// Tendencias',
+    in_total: 'en total',
+    eb_agents: '// Para agentes',
+    agents_home_title: 'Tu agente de IA también lo usa',
+    agents_home_text: 'Claude, ChatGPT o Cursor consultan nuestros datos para recomendarte programas y comprobar que son oficiales antes de instalar nada.',
+    ap_mcp: 'Servidor MCP: se conecta con una línea de configuración',
+    ap_api: 'API pública con los mismos datos que ves en la web',
+    ap_md: 'Cada página, también en texto para las IA',
+    agents_cta: 'Conectar mi agente',
+    term_user: '«Necesito un editor de vídeo gratis para Windows»',
+    eb_news: '// Boletín',
+    footer_tagline: 'Lo mejor del open source, explicado y verificado. En español e inglés.',
+    ft_project: 'Proyecto',
+    mock_note: 'Maqueta con datos de ejemplo',
+    eb_topic: '// Tema',
+    eb_catalog: '// Catálogo',
+    eb_search: '// Búsqueda',
+    eb_alts: '// Alternativas',
+    eb_alerts: '// Seguridad',
+    eb_top: '// Tendencias',
+    top_week: 'Lo más top esta semana',
+    see_all: 'Ver todo',
+    per_week: 'esta semana',
+    programs: n => `${n} ${n === 1 ? 'programa' : 'programas'}`,
+    news_title: 'Lo mejor de cada semana, en 3 minutos',
+    news_sub: 'Gratis y sin spam. También por Telegram.',
+    email_ph: 'tu@email.com',
+    subscribe: 'Apuntarme',
+    subscribed: '¡Apuntado! (en la maqueta no se envía nada)',
+    alert: 'Alerta',
+    alert_text: 'circula una copia falsa de REA que reparte malware.',
+    alert_cta: 'Ver alerta',
+    close: 'Cerrar',
+    explore_title: 'Todo el catálogo',
+    alts_title: 'Alternativas gratis',
+    alts_sub: 'Elige el programa de pago que quieres cambiar por uno gratis y de código abierto.',
+    alt_to_label: 'Alternativas a',
+    alts_count: n => `${n} ${n === 1 ? 'alternativa' : 'alternativas'}`,
+    alerts_title: 'Alertas de seguridad',
+    alerts_sub: 'Copias falsas, malware y proyectos comprometidos que hemos detectado.',
+    alert_active: 'Activa',
+    alert_date: 'Publicada el 14 de octubre de 2026',
+    alert_rea_title: 'Copia falsa de REA que reparte malware',
+    alert_rea_text: 'Un repositorio imita al oficial de REA y ofrece un .zip para Windows con malware. El proyecto oficial no publica ningún .zip: se instala con su comando oficial.',
+    fake_repo: 'Copia falsa',
+    official_repo: 'Oficial',
+    alert_what: 'Qué hacer',
+    alert_do: 'Si lo descargaste, no lo abras y pasa un antivirus. Instala REA solo desde el proyecto oficial.',
+    see_project: 'Ver el proyecto oficial',
+    alerts_how_title: 'Cómo detectamos las copias',
+    alerts_how: 'Vigilamos los repos con nombres parecidos a los de proyectos famosos, creados hace poco, con estrellas que suben de golpe o con archivos para descargar que el original no ofrece. Una persona revisa cada alerta antes de publicarla.',
+    f_title: 'Filtros',
+    f_show: n => `Ver ${n} ${n === 1 ? 'programa' : 'programas'}`,
+    f_clear_all: 'Limpiar todo',
+    remove_filter: l => `Quitar filtro: ${l}`,
+    f_open: 'Solo open source',
+    f_es: 'En español',
+    f_easy: 'Fácil de instalar',
+    q_myos: os => `Funciona en mi ${os}`,
+    sort_label: 'Ordenar',
+    sort_relevancia: 'Más relevantes',
+    sort_puntuacion: 'Mejor puntuados',
+    sort_estrellas: 'Más estrellas',
+    sort_auge: 'En auge',
+    sort_reciente: 'Actualizados hace poco',
+    sort_nombre: 'Nombre (A-Z)',
+    sortd_relevancia: 'ordenados por relevancia',
+    sortd_puntuacion: 'ordenados por nuestra puntuación',
+    sortd_estrellas: 'ordenados por estrellas',
+    sortd_auge: 'ordenados por estrellas ganadas esta semana',
+    sortd_reciente: 'ordenados por última actualización',
+    sortd_nombre: 'ordenados por nombre',
+    g_tema: 'Tema',
+    g_para: 'Para quién',
+    g_so: 'Sistema',
+    g_lic: 'Licencia',
+    g_inst: 'Instalación',
+    g_lang: 'Idioma',
+    g_est: 'Estado',
+    g_min: 'Popularidad',
+    o_usar: 'Listo para usar',
+    o_programar: 'Para programadores',
+    o_open: 'Open source',
+    o_limited: 'Código con límites',
+    o_easy: 'Fácil (con instalador)',
+    o_steps: 'Con algunos pasos',
+    o_dev: 'Desde la terminal',
+    o_es: 'Interfaz en español',
+    o_any: 'Cualquiera',
+    o_min: n => `Más de ${fmtShort(n)} ★`,
+    none: 'Ningún programa cumple estos filtros.',
+    no_results: 'No hemos encontrado nada. Prueba con otra palabra.',
+    works_on: os => `Funciona en tu ${os}`,
+    not_on: os => `No disponible para ${os}`,
+    on_server: 'Se instala en un servidor',
+    download_for: os => `Descargar gratis para ${os}`,
+    how_install: 'Ver cómo instalarlo',
+    see_github: 'Ver en GitHub',
+    from_official: site => `Desde la web oficial: ${site}`,
+    other_os: 'Otros sistemas',
+    shots: 'Capturas',
+    shot_of: n => `Captura de ${n} (ilustración)`,
+    seal_official: 'Oficial y verificado',
+    seal_official_sub: 'Es el proyecto original',
+    st_active: 'Activo',
+    st_slow: 'Lento',
+    st_dead: 'Abandonado',
+    st_done: 'Terminado',
+    version_ago: d => d === 0 ? 'Versión nueva hoy' : `Última versión hace ${d} ${d === 1 ? 'día' : 'días'}`,
+    in_easy: 'Fácil de instalar',
+    in_easy_sub: 'Como cualquier programa',
+    in_steps: 'Necesita unos pasos',
+    in_steps_sub: 'Requiere algo de técnica',
+    in_dev: 'Para programadores',
+    in_dev_sub: 'Se usa desde la terminal',
+    chip_fakes: 'Hay copias falsas',
+    lic_limited_short: 'Código con límites',
+    rank_in: (n, task) => `Nº ${n} en ${task}`,
+    what: 'Qué es',
+    careful: 'Cuidado con las copias',
+    fake_text: 'Hemos detectado un repositorio falso que imita a este proyecto y ofrece un .zip para Windows con malware. Descárgalo solo desde el enlace oficial.',
+    fake_label: 'copia falsa: no lo descargues',
+    alts: 'Alternativas',
+    more: 'Más detalles',
+    d_numbers: 'Cifras',
+    d_score: 'Puntuación',
+    d_license: 'Licencia',
+    d_faq: 'Preguntas frecuentes',
+    d_install: 'Cómo instalarlo',
+    stars_total: 'Estrellas',
+    stars_hint: 'gente que lo marcó como favorito',
+    this_week: 'Esta semana',
+    last_version: 'Última versión',
+    days_ago: d => d === 0 ? 'hoy' : `hace ${d} ${d === 1 ? 'día' : 'días'}`,
+    contributors: 'Colaboradores',
+    weeks12: 'Estrellas nuevas por semana (últimas 12)',
+    sc_pop: 'Popularidad',
+    sc_mom: 'Impulso',
+    sc_health: 'Salud',
+    sc_use: 'Uso real',
+    score_note: 'Comparado con los demás programas de su tema. Nadie paga por subir.',
+    lic_open: n => `Open source (${n}). Puedes usarlo gratis, también en tu empresa.`,
+    lic_limited: n => `Código visible con límites (${n}). Es gratis para ti y para usarlo dentro de tu empresa, pero no puedes revenderlo como servicio.`,
+    lic_none: 'Sin licencia: legalmente no se puede reutilizar.',
+    faq: (p, osName, works) => [
+      ['¿Es gratis?', p.lic === 'limited' ? 'Sí para uso personal o dentro de tu empresa. Tiene límites si quieres revenderlo como servicio.' : 'Sí, totalmente gratis.'],
+      [`¿Funciona en ${osName}?`, works ? 'Sí.' : p.os.includes('server') ? 'Se instala en un servidor y lo usas desde el navegador o el móvil.' : 'De momento no.'],
+      ['¿Necesito saber programar?', p.install === 'easy' ? 'No. Se instala como cualquier programa.' : p.install === 'steps' ? 'No hace falta programar, pero sí seguir unos pasos técnicos.' : 'Sí, está pensado para programadores.'],
+      ['¿Está en español?', p.es ? 'Sí, la interfaz está traducida.' : 'No, de momento solo está en inglés.'],
+      ['¿Es seguro?', p.fakes ? 'El proyecto oficial sí, pero circulan copias falsas. Descárgalo solo desde el enlace oficial.' : 'Sí. Es el proyecto oficial y no tiene alertas abiertas.'],
+    ],
+    steps_easy: ['Pulsa «Descargar».', 'Abre el archivo que se ha descargado.', 'Sigue el instalador. ¡Listo!'],
+    steps_steps: ['Necesitas un ordenador de casa que haga de servidor (vale uno viejo).', 'Instala Docker, que es gratis.', 'Ejecuta el comando oficial y abre la app desde el navegador o el móvil.'],
+    steps_dev: ['Abre la terminal.', 'Ejecuta el comando de abajo.', 'Sigue la guía oficial en GitHub.'],
+    copy: 'Copiar',
+    copied: 'Copiado',
+    agent_link: 'Ver lo que lee un agente',
+    agent_title: 'Lo que lee un agente en esta misma dirección',
+    agent_sub: 'Tú ves la página; ChatGPT, Claude y compañía leen esta versión en texto y datos estructurados.',
+    md: 'Versión en texto (Markdown)',
+    jsonld: 'Datos estructurados (JSON-LD)',
+    url_note: 'igual que en GitHub',
+    no_ads: 'Sin anuncios. Sin trampas.',
+    footer_nav: 'Pie de página',
+    f_method: 'Cómo puntuamos',
+    f_data: 'Datos abiertos',
+    f_agents: 'Para agentes',
+    f_report: 'Avísanos de un error',
+    toast_method: 'Aquí iría la página pública de metodología.',
+    toast_data: 'Aquí se descargarían los datos abiertos (CC BY).',
+    toast_report: 'Aquí se abriría un formulario para avisar de errores.',
+    agents_title: 'Conecta tu agente',
+    agents_sub: 'Con una línea de configuración, Claude, ChatGPT o Cursor consultan nuestros datos y verifican un proyecto antes de instalarlo.',
+    agents_config: 'Configuración (MCP)',
+    agents_ask: 'Ejemplo de consulta',
+    agents_answer: 'Respuesta',
+    agents_query: 'recomendar(necesidad: "editar vídeo", sistema: "windows")',
+    mock: 'Maqueta · datos de ejemplo',
+    simulate: 'Simular:',
+    toast_os: os => `Simulando que entras desde ${os}`,
+    toast_download: site => `En la web real, aquí empezaría la descarga oficial desde ${site}.`,
+    toast_github: id => `En la web real, se abriría github.com/${id}.`,
+    alts_to: name => `Alternativas gratis a ${name}`,
+    results_for: q => `Resultados para «${q}»`,
+    nf_title: 'No encontramos esta página',
+    nf_sub: 'Vuelve al inicio y prueba con el buscador.',
+  },
+  en: {
+    home: 'Home',
+    provisional: 'working name',
+    search: 'Search',
+    language: 'Language',
+    menu: 'Menu',
+    open_menu: 'Open menu',
+    main_nav: 'Main navigation',
+    theme_light: 'Switch to light mode',
+    theme_dark: 'Switch to dark mode',
+    nav_explore: 'Explore',
+    nav_trending: 'Trending',
+    nav_alts: 'Alternatives',
+    nav_alerts: 'Alerts',
+    nav_agents: 'For agents',
+    mega_tasks: 'By task',
+    mega_shortcuts: 'Shortcuts',
+    mg_ready: os => `Ready to use on ${os}`,
+    mg_dev: 'For developers',
+    mg_all: 'Full catalog',
+    see_catalog: 'See the full catalog',
+    hero_a: 'The best of open source,',
+    hero_b: 'explained and verified.',
+    hero_sub: 'Free apps and developer tools, picked with real-time data. No ads.',
+    hero_ph: 'What do you want to do? Edit video, Photoshop alternative…',
+    search_ph: 'Edit video, Photoshop alternative…',
+    live_badge: 'Live · updated 2 h ago',
+    qs_photoshop: 'Photoshop alternative',
+    qs_ai: 'AI on your computer',
+    qs_gphotos: 'Your own Google Photos',
+    qs_video: 'Edit video',
+    qs_video_q: 'edit video',
+    st_projects: 'projects analyzed',
+    st_topics: 'topics',
+    st_week: 'new stars this week',
+    st_ads: 'ads',
+    eb_explore: '// Explore',
+    explore_home_title: 'What do you need?',
+    ia_note: 'The fastest-growing topic this week',
+    eb_trending: '// Trending',
+    in_total: 'in total',
+    eb_agents: '// For agents',
+    agents_home_title: 'Your AI agent uses it too',
+    agents_home_text: 'Claude, ChatGPT or Cursor query our data to recommend apps and check they are official before installing anything.',
+    ap_mcp: 'MCP server: connects with one line of config',
+    ap_api: 'Public API with the same data you see on the site',
+    ap_md: 'Every page, also as AI-readable text',
+    agents_cta: 'Connect my agent',
+    term_user: '"I need a free video editor for Windows"',
+    eb_news: '// Newsletter',
+    footer_tagline: 'The best of open source, explained and verified. In Spanish and English.',
+    ft_project: 'Project',
+    mock_note: 'Mockup with sample data',
+    eb_topic: '// Topic',
+    eb_catalog: '// Catalog',
+    eb_search: '// Search',
+    eb_alts: '// Alternatives',
+    eb_alerts: '// Security',
+    eb_top: '// Trending',
+    top_week: 'Top this week',
+    see_all: 'See all',
+    per_week: 'this week',
+    programs: n => `${n} ${n === 1 ? 'app' : 'apps'}`,
+    news_title: 'The best of each week, in 3 minutes',
+    news_sub: 'Free and no spam. Also on Telegram.',
+    email_ph: 'you@email.com',
+    subscribe: 'Sign me up',
+    subscribed: "You're in! (nothing is sent in this mockup)",
+    alert: 'Alert',
+    alert_text: 'a fake copy of REA is spreading malware.',
+    alert_cta: 'See alert',
+    close: 'Close',
+    explore_title: 'Full catalog',
+    alts_title: 'Free alternatives',
+    alts_sub: 'Pick the paid app you want to replace with a free, open-source one.',
+    alt_to_label: 'Alternatives to',
+    alts_count: n => `${n} ${n === 1 ? 'alternative' : 'alternatives'}`,
+    alerts_title: 'Security alerts',
+    alerts_sub: 'Fake copies, malware and compromised projects we have detected.',
+    alert_active: 'Active',
+    alert_date: 'Published on October 14, 2026',
+    alert_rea_title: 'Fake copy of REA spreading malware',
+    alert_rea_text: 'A repository imitates the official REA and offers a Windows .zip with malware. The official project publishes no .zip: it installs with its official command.',
+    fake_repo: 'Fake copy',
+    official_repo: 'Official',
+    alert_what: 'What to do',
+    alert_do: 'If you downloaded it, do not open it and run an antivirus scan. Only install REA from the official project.',
+    see_project: 'See the official project',
+    alerts_how_title: 'How we detect copies',
+    alerts_how: 'We watch repos with names similar to famous projects, created recently, with sudden star spikes or downloads the original does not offer. A person reviews every alert before it is published.',
+    f_title: 'Filters',
+    f_show: n => `Show ${n} ${n === 1 ? 'app' : 'apps'}`,
+    f_clear_all: 'Clear all',
+    remove_filter: l => `Remove filter: ${l}`,
+    f_open: 'Open source only',
+    f_es: 'In Spanish',
+    f_easy: 'Easy to install',
+    q_myos: os => `Works on my ${os}`,
+    sort_label: 'Sort',
+    sort_relevancia: 'Most relevant',
+    sort_puntuacion: 'Top rated',
+    sort_estrellas: 'Most stars',
+    sort_auge: 'Trending',
+    sort_reciente: 'Recently updated',
+    sort_nombre: 'Name (A-Z)',
+    sortd_relevancia: 'sorted by relevance',
+    sortd_puntuacion: 'sorted by our score',
+    sortd_estrellas: 'sorted by stars',
+    sortd_auge: 'sorted by stars gained this week',
+    sortd_reciente: 'sorted by last update',
+    sortd_nombre: 'sorted by name',
+    g_tema: 'Topic',
+    g_para: 'Who is it for',
+    g_so: 'System',
+    g_lic: 'License',
+    g_inst: 'Install',
+    g_lang: 'Language',
+    g_est: 'Status',
+    g_min: 'Popularity',
+    o_usar: 'Ready to use',
+    o_programar: 'For developers',
+    o_open: 'Open source',
+    o_limited: 'Source-available',
+    o_easy: 'Easy (installer)',
+    o_steps: 'A few steps',
+    o_dev: 'From the terminal',
+    o_es: 'Spanish interface',
+    o_any: 'Any',
+    o_min: n => `Over ${fmtShort(n)} ★`,
+    none: 'No app matches these filters.',
+    no_results: 'Nothing found. Try another word.',
+    works_on: os => `Works on your ${os}`,
+    not_on: os => `Not available for ${os}`,
+    on_server: 'Runs on a server',
+    download_for: os => `Free download for ${os}`,
+    how_install: 'See how to install it',
+    see_github: 'View on GitHub',
+    from_official: site => `From the official site: ${site}`,
+    other_os: 'Other systems',
+    shots: 'Screenshots',
+    shot_of: n => `${n} screenshot (illustration)`,
+    seal_official: 'Official and verified',
+    seal_official_sub: 'This is the original project',
+    st_active: 'Active',
+    st_slow: 'Slow',
+    st_dead: 'Abandoned',
+    st_done: 'Finished',
+    version_ago: d => d === 0 ? 'New version today' : `Last version ${d} ${d === 1 ? 'day' : 'days'} ago`,
+    in_easy: 'Easy to install',
+    in_easy_sub: 'Like any other app',
+    in_steps: 'Needs a few steps',
+    in_steps_sub: 'Requires some tech skills',
+    in_dev: 'For developers',
+    in_dev_sub: 'Used from the terminal',
+    chip_fakes: 'Fake copies around',
+    lic_limited_short: 'Source-available',
+    rank_in: (n, task) => `#${n} in ${task}`,
+    what: 'What it is',
+    careful: 'Watch out for copies',
+    fake_text: 'We detected a fake repository imitating this project and offering a Windows .zip with malware. Only download it from the official link.',
+    fake_label: 'fake copy: do not download',
+    alts: 'Alternatives',
+    more: 'More details',
+    d_numbers: 'Numbers',
+    d_score: 'Score',
+    d_license: 'License',
+    d_faq: 'FAQ',
+    d_install: 'How to install it',
+    stars_total: 'Stars',
+    stars_hint: 'people who favorited it',
+    this_week: 'This week',
+    last_version: 'Last version',
+    days_ago: d => d === 0 ? 'today' : `${d} ${d === 1 ? 'day' : 'days'} ago`,
+    contributors: 'Contributors',
+    weeks12: 'New stars per week (last 12)',
+    sc_pop: 'Popularity',
+    sc_mom: 'Momentum',
+    sc_health: 'Health',
+    sc_use: 'Real usage',
+    score_note: 'Compared with the other apps in its topic. Nobody pays to rank higher.',
+    lic_open: n => `Open source (${n}). You can use it for free, at work too.`,
+    lic_limited: n => `Source-available with limits (${n}). Free for you and for internal use at your company, but you cannot resell it as a service.`,
+    lic_none: 'No license: legally it cannot be reused.',
+    faq: (p, osName, works) => [
+      ['Is it free?', p.lic === 'limited' ? 'Yes for personal use or inside your company. There are limits if you want to resell it as a service.' : 'Yes, completely free.'],
+      [`Does it work on ${osName}?`, works ? 'Yes.' : p.os.includes('server') ? 'It runs on a server and you use it from your browser or phone.' : 'Not for now.'],
+      ['Do I need to know how to code?', p.install === 'easy' ? 'No. It installs like any other app.' : p.install === 'steps' ? 'No coding needed, but you will follow a few technical steps.' : 'Yes, it is built for developers.'],
+      ['Is it available in Spanish?', p.es ? 'Yes, the interface is translated.' : 'No, English only for now.'],
+      ['Is it safe?', p.fakes ? 'The official project is, but fake copies are around. Only download it from the official link.' : 'Yes. It is the official project and has no open alerts.'],
+    ],
+    steps_easy: ['Click "Download".', 'Open the downloaded file.', 'Follow the installer. Done!'],
+    steps_steps: ['You need a home computer acting as a server (an old one works).', 'Install Docker, which is free.', 'Run the official command and open the app from your browser or phone.'],
+    steps_dev: ['Open the terminal.', 'Run the command below.', 'Follow the official guide on GitHub.'],
+    copy: 'Copy',
+    copied: 'Copied',
+    agent_link: 'See what an agent reads',
+    agent_title: 'What an agent reads at this same address',
+    agent_sub: 'You see the page; ChatGPT, Claude and friends read this text and structured-data version.',
+    md: 'Text version (Markdown)',
+    jsonld: 'Structured data (JSON-LD)',
+    url_note: 'same as on GitHub',
+    no_ads: 'No ads. No tricks.',
+    footer_nav: 'Footer',
+    f_method: 'How we score',
+    f_data: 'Open data',
+    f_agents: 'For agents',
+    f_report: 'Report an error',
+    toast_method: 'The public methodology page would go here.',
+    toast_data: 'The open data (CC BY) would be downloadable here.',
+    toast_report: 'An error report form would open here.',
+    agents_title: 'Connect your agent',
+    agents_sub: 'With one line of config, Claude, ChatGPT or Cursor can query our data and verify a project before installing it.',
+    agents_config: 'Config (MCP)',
+    agents_ask: 'Sample query',
+    agents_answer: 'Answer',
+    agents_query: 'recommend(need: "edit video", os: "windows")',
+    mock: 'Mockup · sample data',
+    simulate: 'Simulate:',
+    toast_os: os => `Simulating a visit from ${os}`,
+    toast_download: site => `On the real site, the official download from ${site} would start here.`,
+    toast_github: id => `On the real site, github.com/${id} would open.`,
+    alts_to: name => `Free alternatives to ${name}`,
+    results_for: q => `Results for "${q}"`,
+    nf_title: "We couldn't find this page",
+    nf_sub: 'Go back home and try the search.',
+  },
+};
+const t = key => {
+  const v = T[state.lang][key];
+  return v === undefined ? (T.es[key] ?? key) : v;
+};
+// Separador de miles siempre (2.341, no 2341) para que las cifras se lean igual en toda la web
+const fmt = n => new Intl.NumberFormat(state.lang === 'es' ? 'es-ES' : 'en-US', { useGrouping: 'always' }).format(n);
+const fmtShort = n => new Intl.NumberFormat(state.lang === 'es' ? 'es-ES' : 'en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+const ver = v => (/^\d/.test(v) ? `v${v}` : v);
+
+// ---------------------------------------------------------------------------
+// Datos de ejemplo
+// ---------------------------------------------------------------------------
+const TASKS = [
+  { id: 'fotos', icon: 'image', hue: 35, es: 'Fotos', en: 'Photos', kw: 'foto fotos imagen imagenes photo photos image picture pictures retoque dibujo drawing' },
+  { id: 'video', icon: 'clapperboard', hue: 265, es: 'Vídeo', en: 'Video', kw: 'video videos grabar pantalla screen streaming directo pelicula peliculas series movies' },
+  { id: 'ia', icon: 'sparkles', hue: 305, es: 'IA', en: 'AI', kw: 'ia ai inteligencia artificial chat modelos llm' },
+  { id: 'oficina', icon: 'file-text', hue: 220, es: 'Oficina', en: 'Office', kw: 'oficina office documentos documents texto hoja calculo spreadsheet presentaciones notas notes tareas tasks automatizar automation' },
+  { id: 'musica', icon: 'music', hue: 345, es: 'Música', en: 'Music', kw: 'musica music audio podcast voz voice componer' },
+  { id: 'juegos', icon: 'gamepad-2', hue: 145, es: 'Juegos', en: 'Games', kw: 'juego juegos game games jugar videojuegos videogames' },
+  { id: 'seguridad', icon: 'shield-check', hue: 165, es: 'Seguridad', en: 'Security', kw: 'seguridad security contrasenas passwords password privacidad privacy' },
+  { id: 'programar', icon: 'code-xml', hue: 250, es: 'Programar', en: 'Code', kw: 'programar programacion code coding codigo developer desarrollador editor' },
+];
+
+const P = [
+  { id: 'obsproject/obs-studio', name: 'OBS Studio', tasks: ['video'], icon: 'radio', hue: 265, shot: 'video',
+    tag: { es: 'Graba tu pantalla o emite en directo.', en: 'Record your screen or stream live.' },
+    about: { es: 'El estándar para grabar la pantalla, hacer directos en Twitch o YouTube y crear tutoriales. Lo usan millones de creadores.', en: 'The standard for screen recording, streaming to Twitch or YouTube and making tutorials. Used by millions of creators.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-2.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 67500, week: 420, score: 94, sc: [95, 68, 95, 97], version: '32.0', days: 9, contributors: 680, site: 'obsproject.com',
+    alts: ['KDE/kdenlive', 'mltframework/shotcut'] },
+  { id: 'KDE/kdenlive', name: 'Kdenlive', tasks: ['video'], icon: 'clapperboard', hue: 225, shot: 'video',
+    tag: { es: 'Edita vídeo como un profesional. Gratis.', en: 'Edit video like a pro. For free.' },
+    about: { es: 'Editor de vídeo completo para YouTube, redes o tus vídeos familiares: cortes, transiciones, títulos y efectos. No sirve para retocar fotos.', en: 'A full video editor for YouTube, social media or family videos: cuts, transitions, titles and effects. Not meant for photo editing.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 4300, week: 140, score: 91, sc: [62, 70, 96, 88], version: '25.08.2', days: 6, contributors: 312, site: 'kdenlive.org',
+    alts: ['mltframework/shotcut', 'obsproject/obs-studio', 'HandBrake/HandBrake'] },
+  { id: 'mltframework/shotcut', name: 'Shotcut', tasks: ['video'], icon: 'scissors', hue: 200, shot: 'video',
+    tag: { es: 'Editor de vídeo sencillo, ideal para empezar.', en: 'A simple video editor, great for beginners.' },
+    about: { es: 'Corta, une y añade música o textos a tus vídeos sin complicaciones. Más sencillo que Kdenlive, con menos efectos avanzados.', en: 'Cut, join and add music or text to your videos without hassle. Simpler than Kdenlive, with fewer advanced effects.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 12800, week: 95, score: 88, sc: [70, 55, 92, 85], version: '25.10', days: 12, contributors: 120, site: 'shotcut.org',
+    alts: ['KDE/kdenlive', 'obsproject/obs-studio'] },
+  { id: 'HandBrake/HandBrake', name: 'HandBrake', tasks: ['video'], icon: 'refresh-cw', hue: 20, shot: 'video',
+    tag: { es: 'Convierte y comprime vídeos a cualquier formato.', en: 'Convert and compress videos to any format.' },
+    about: { es: 'Reduce el tamaño de tus vídeos o cámbialos de formato para el móvil o la tele, en pocos clics.', en: 'Shrink your videos or convert them for your phone or TV in a few clicks.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-2.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 20600, week: 70, score: 86, sc: [78, 48, 90, 90], version: '1.10.2', days: 34, contributors: 160, site: 'handbrake.fr',
+    alts: ['mltframework/shotcut', 'KDE/kdenlive'] },
+  { id: 'jellyfin/jellyfin', name: 'Jellyfin', tasks: ['video'], icon: 'tv', hue: 285, shot: 'media',
+    tag: { es: 'Tu propio Netflix con tus películas y series.', en: 'Your own Netflix with your movies and shows.' },
+    about: { es: 'Organiza tus películas, series y música, y míralas en la tele, el móvil o el navegador. Se instala en un ordenador de casa que hace de servidor.', en: 'Organize your movies, shows and music and watch them on your TV, phone or browser. It runs on a home computer acting as a server.' },
+    os: ['server', 'android', 'ios', 'web'], lic: 'open', licName: 'GPL-2.0', es: true, install: 'steps', status: 'active', official: true,
+    stars: 42000, week: 260, score: 84, sc: [88, 60, 88, 80], version: '10.11.1', days: 15, contributors: 560, site: 'jellyfin.org',
+    cmd: 'docker run -d -p 8096:8096 jellyfin/jellyfin', alts: ['immich-app/immich'] },
+  { id: 'GNOME/gimp', name: 'GIMP', tasks: ['fotos'], icon: 'image', hue: 35, shot: 'photo',
+    tag: { es: 'Retoca fotos y crea imágenes. La alternativa libre a Photoshop.', en: 'Retouch photos and create images. The free Photoshop alternative.' },
+    about: { es: 'Recorta, retoca, quita fondos, corrige colores y trabaja por capas. Muy completo, aunque cuesta un poco aprenderlo.', en: 'Crop, retouch, remove backgrounds, fix colors and work with layers. Very complete, though it takes a while to learn.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 6100, week: 85, score: 90, sc: [80, 52, 94, 93], version: '3.0.6', days: 21, contributors: 900, site: 'gimp.org',
+    alts: ['KDE/krita', 'darktable-org/darktable', 'upscayl/upscayl'] },
+  { id: 'KDE/krita', name: 'Krita', tasks: ['fotos'], icon: 'palette', hue: 330, shot: 'paint',
+    tag: { es: 'Dibuja y pinta en digital.', en: 'Draw and paint digitally.' },
+    about: { es: 'Pensado para ilustración, cómic y arte digital, con pinceles muy realistas. Funciona genial con tableta gráfica.', en: 'Built for illustration, comics and digital art, with very realistic brushes. Works great with a drawing tablet.' },
+    os: ['windows', 'mac', 'linux', 'android'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 9300, week: 90, score: 89, sc: [74, 55, 93, 88], version: '5.2.13', days: 18, contributors: 610, site: 'krita.org',
+    alts: ['GNOME/gimp'] },
+  { id: 'darktable-org/darktable', name: 'darktable', tasks: ['fotos'], icon: 'aperture', hue: 55, shot: 'photo',
+    tag: { es: 'Revela tus fotos RAW. Alternativa a Lightroom.', en: 'Develop your RAW photos. A Lightroom alternative.' },
+    about: { es: 'Organiza y edita las fotos de tu cámara sin estropear el original. Para aficionados a la fotografía que quieren control total.', en: 'Organize and edit your camera photos without touching the original. For photography fans who want full control.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 11200, week: 60, score: 85, sc: [72, 45, 92, 80], version: '5.2.1', days: 40, contributors: 420, site: 'darktable.org',
+    alts: ['GNOME/gimp', 'upscayl/upscayl'] },
+  { id: 'upscayl/upscayl', name: 'Upscayl', tasks: ['fotos', 'ia'], icon: 'maximize-2', hue: 290, shot: 'photo',
+    tag: { es: 'Amplía y mejora fotos con IA, sin internet.', en: 'Upscale and enhance photos with AI, offline.' },
+    about: { es: 'Convierte fotos pequeñas o borrosas en imágenes grandes y nítidas usando IA en tu propio ordenador. Tus fotos no salen de tu equipo.', en: 'Turns small or blurry photos into large, sharp images using AI on your own computer. Your photos never leave your device.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'AGPL-3.0', es: false, install: 'easy', status: 'active', official: true,
+    stars: 38000, week: 610, score: 87, sc: [86, 72, 85, 82], version: '2.15', days: 27, contributors: 50, site: 'upscayl.org',
+    alts: ['GNOME/gimp', 'comfyanonymous/ComfyUI'] },
+  { id: 'immich-app/immich', name: 'Immich', tasks: ['fotos'], icon: 'images', hue: 215, shot: 'gallery',
+    tag: { es: 'Tu propio Google Fotos, en tu casa.', en: 'Your own Google Photos, at home.' },
+    about: { es: 'Copia automática de las fotos del móvil, búsqueda por caras y lugares, y álbumes compartidos. Sin pagar suscripción y sin dar tus fotos a nadie.', en: 'Automatic phone photo backup, search by faces and places, and shared albums. No subscription, and nobody else gets your photos.' },
+    os: ['server', 'android', 'ios', 'web'], lic: 'open', licName: 'AGPL-3.0', es: true, install: 'steps', status: 'active', official: true,
+    stars: 73000, week: 1150, score: 92, sc: [92, 80, 96, 88], version: '2.1.0', days: 4, contributors: 980, site: 'immich.app',
+    cmd: 'docker compose up -d', alts: ['jellyfin/jellyfin'] },
+  { id: 'ollama/ollama', name: 'Ollama', tasks: ['ia'], icon: 'bot', hue: 160, shot: 'chat',
+    tag: { es: 'Usa modelos de IA en tu ordenador, sin internet.', en: 'Run AI models on your computer, offline.' },
+    about: { es: 'Descarga modelos de IA abiertos y chatea con ellos en tu propio ordenador: privado, gratis y sin conexión. Cuanta más potencia tenga tu equipo, mejor.', en: 'Download open AI models and chat with them on your own computer: private, free and offline. The more powerful your machine, the better.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'MIT', es: false, install: 'easy', status: 'active', official: true,
+    stars: 168000, week: 2900, score: 95, sc: [99, 85, 95, 96], version: '0.12.5', days: 3, contributors: 600, site: 'ollama.com',
+    alts: ['ggml-org/llama.cpp', 'comfyanonymous/ComfyUI'] },
+  { id: 'comfyanonymous/ComfyUI', name: 'ComfyUI', tasks: ['ia'], icon: 'workflow', hue: 45, shot: 'nodes',
+    tag: { es: 'Crea imágenes y vídeos con IA uniendo bloques.', en: 'Create AI images and videos by connecting blocks.' },
+    about: { es: 'Genera imágenes y vídeos con modelos de IA abiertos, conectando bloques como en un diagrama. Muy potente; necesita un buen ordenador y algo de paciencia.', en: 'Generate images and videos with open AI models by connecting blocks like a diagram. Very powerful; needs a good computer and some patience.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: false, install: 'steps', status: 'active', official: true,
+    stars: 94000, week: 1600, score: 89, sc: [95, 82, 90, 85], version: '0.3.62', days: 2, contributors: 300, site: 'comfy.org',
+    stepsText: { es: ['Necesitas un ordenador con una buena tarjeta gráfica.', 'Descarga la versión de escritorio desde la web oficial.', 'Descarga un modelo de imagen y empieza a crear.'], en: ['You need a computer with a good graphics card.', 'Download the desktop version from the official site.', 'Download an image model and start creating.'] },
+    alts: ['ollama/ollama', 'upscayl/upscayl'] },
+  { id: 'morluto/rea', name: 'REA', tasks: ['programar', 'ia'], icon: 'scan-search', hue: 10, shot: 'term',
+    tag: { es: 'Desmonta cualquier programa con agentes de IA.', en: 'Reverse-engineer any program with AI agents.' },
+    about: { es: 'Conecta tu asistente de programación (Claude Code, Cursor…) con herramientas de ingeniería inversa para analizar cómo funciona un programa por dentro. Para programadores y analistas de seguridad.', en: 'Connects your coding assistant (Claude Code, Cursor…) to reverse-engineering tools to analyze how a program works inside. For developers and security analysts.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'MIT', es: false, install: 'dev', status: 'active', official: true, fakes: true, fake: 'github.com/rea-githu/REA',
+    stars: 219000, week: 18400, score: 90, sc: [99, 100, 88, 74], version: '6.4.0', days: 2, contributors: 140, site: 'rea.tools',
+    cmd: 'npx rea-agents setup',
+    term: { es: ['$ npx rea-agents setup', '✔ Agentes: Claude Code, Cursor', '✔ Motores: Ghidra, JADX', '$ rea analyze ./app.exe', '→ 214 funciones · 12 llamadas de red'], en: ['$ npx rea-agents setup', '✔ Agents: Claude Code, Cursor', '✔ Engines: Ghidra, JADX', '$ rea analyze ./app.exe', '→ 214 functions · 12 network calls'] },
+    spark: [200, 260, 310, 400, 380, 520, 610, 700, 900, 1400, 9800, 18400],
+    alts: ['NationalSecurityAgency/ghidra'] },
+  { id: 'NationalSecurityAgency/ghidra', name: 'Ghidra', tasks: ['programar'], icon: 'binary', hue: 0, shot: 'code',
+    tag: { es: 'Analiza programas por dentro (ingeniería inversa).', en: 'Look inside programs (reverse engineering).' },
+    about: { es: 'La herramienta de ingeniería inversa que creó la NSA y liberó como código abierto. Para analistas de seguridad y curiosos avanzados.', en: 'The reverse-engineering suite created by the NSA and released as open source. For security analysts and advanced tinkerers.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'Apache-2.0', es: false, install: 'steps', status: 'active', official: true,
+    stars: 63000, week: 300, score: 88, sc: [93, 55, 92, 86], version: '11.4', days: 20, contributors: 180, site: 'ghidra-sre.org',
+    stepsText: { es: ['Instala Java (JDK 21), que es gratis.', 'Descarga Ghidra desde la web oficial y descomprímelo.', 'Abre «ghidraRun».'], en: ['Install Java (JDK 21), which is free.', 'Download Ghidra from the official site and unzip it.', 'Open "ghidraRun".'] },
+    alts: ['morluto/rea'] },
+  { id: 'ggml-org/llama.cpp', name: 'llama.cpp', tasks: ['programar', 'ia'], icon: 'cpu', hue: 100, shot: 'term',
+    tag: { es: 'El motor para ejecutar IA en local.', en: 'The engine for running AI locally.' },
+    about: { es: 'La base técnica sobre la que funcionan muchas apps de IA local. Rapidísimo incluso sin tarjeta gráfica. Pensado para programadores.', en: 'The technical foundation behind many local AI apps. Very fast even without a graphics card. Built for developers.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'MIT', es: false, install: 'dev', status: 'active', official: true,
+    stars: 88000, week: 480, score: 91, sc: [93, 70, 97, 94], version: 'b6800', days: 0, contributors: 1300, site: 'github.com/ggml-org/llama.cpp',
+    cmd: 'brew install llama.cpp',
+    term: { es: ['$ llama-cli -m modelo.gguf', '> Hola, ¿qué tal?', '¡Hola! ¿En qué puedo ayudarte?', '', '  58 tokens/s · sin internet'], en: ['$ llama-cli -m model.gguf', '> Hi, how are you?', 'Hi! How can I help?', '', '  58 tokens/s · offline'] },
+    alts: ['ollama/ollama'] },
+  { id: 'LibreOffice/core', name: 'LibreOffice', tasks: ['oficina'], icon: 'file-text', hue: 150, shot: 'doc',
+    tag: { es: 'Documentos, hojas de cálculo y presentaciones. Alternativa a Office.', en: 'Documents, spreadsheets and presentations. An Office alternative.' },
+    about: { es: 'El paquete de oficina libre más completo: abre y guarda archivos de Word, Excel y PowerPoint. Ideal para casa, colegios y empresas.', en: 'The most complete free office suite: opens and saves Word, Excel and PowerPoint files. Great for home, schools and businesses.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'MPL-2.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 3500, week: 45, score: 90, sc: [70, 40, 97, 98], version: '25.8.2', days: 10, contributors: 1100, site: 'libreoffice.org',
+    alts: ['AppFlowy-IO/AppFlowy'] },
+  { id: 'AppFlowy-IO/AppFlowy', name: 'AppFlowy', tasks: ['oficina'], icon: 'notebook-pen', hue: 300, shot: 'doc',
+    tag: { es: 'Notas, tareas y wikis. Alternativa a Notion.', en: 'Notes, tasks and wikis. A Notion alternative.' },
+    about: { es: 'Organiza notas, proyectos y bases de datos como en Notion, pero con tus datos en tu equipo. Tiene app para el móvil.', en: 'Organize notes, projects and databases like in Notion, but your data stays on your device. Has mobile apps.' },
+    os: ['windows', 'mac', 'linux', 'android', 'ios'], lic: 'open', licName: 'AGPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 65000, week: 330, score: 86, sc: [90, 60, 86, 78], version: '0.10.1', days: 8, contributors: 350, site: 'appflowy.com',
+    alts: ['LibreOffice/core'] },
+  { id: 'n8n-io/n8n', name: 'n8n', tasks: ['oficina', 'programar'], icon: 'zap', hue: 15, shot: 'nodes',
+    tag: { es: 'Automatiza tareas conectando tus apps.', en: 'Automate tasks by connecting your apps.' },
+    about: { es: 'Crea automatismos sin programar: «cuando llegue un correo, guárdalo en una hoja y avísame por Telegram». Alternativa a Zapier.', en: 'Build automations without coding: "when an email arrives, save it to a sheet and ping me on Telegram". A Zapier alternative.' },
+    os: ['server', 'web'], lic: 'limited', licName: 'Sustainable Use License', es: false, install: 'steps', status: 'active', official: true,
+    stars: 152000, week: 1250, score: 88, sc: [97, 78, 94, 90], version: '1.115', days: 1, contributors: 520, site: 'n8n.io',
+    cmd: 'docker run -it --rm -p 5678:5678 n8nio/n8n', alts: [] },
+  { id: 'audacity/audacity', name: 'Audacity', tasks: ['musica'], icon: 'audio-lines', hue: 25, shot: 'audio',
+    tag: { es: 'Graba y edita audio fácilmente.', en: 'Record and edit audio easily.' },
+    about: { es: 'Graba tu voz, limpia el ruido, corta y une audios para pódcast, clases o música.', en: 'Record your voice, clean up noise, cut and join audio for podcasts, classes or music.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 14500, week: 75, score: 89, sc: [80, 50, 92, 94], version: '3.7.5', days: 25, contributors: 330, site: 'audacityteam.org',
+    alts: ['LMMS/lmms'] },
+  { id: 'LMMS/lmms', name: 'LMMS', tasks: ['musica'], icon: 'music-4', hue: 140, shot: 'audio',
+    tag: { es: 'Crea música en tu ordenador.', en: 'Make music on your computer.' },
+    about: { es: 'Compón canciones con instrumentos virtuales, ritmos y efectos. Alternativa gratuita a FL Studio o GarageBand.', en: 'Compose songs with virtual instruments, beats and effects. A free alternative to FL Studio or GarageBand.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-2.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 9200, week: 40, score: 80, sc: [72, 40, 80, 70], version: '1.2.2', days: 60, contributors: 260, site: 'lmms.io',
+    alts: ['audacity/audacity'] },
+  { id: 'supertuxkart/stk-code', name: 'SuperTuxKart', tasks: ['juegos'], icon: 'car', hue: 80, shot: 'game',
+    tag: { es: 'Carreras de karts para jugar con amigos.', en: 'Kart racing to play with friends.' },
+    about: { es: 'Un juego de carreras divertido, con modo online y pantalla partida. Sin anuncios ni compras dentro del juego.', en: 'A fun racing game with online mode and split screen. No ads or in-game purchases.' },
+    os: ['windows', 'mac', 'linux', 'android'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 5600, week: 35, score: 82, sc: [65, 40, 85, 75], version: '1.5', days: 45, contributors: 200, site: 'supertuxkart.net',
+    alts: [] },
+  { id: 'godotengine/godot', name: 'Godot', tasks: ['juegos', 'programar'], icon: 'gamepad-2', hue: 210, shot: 'code',
+    tag: { es: 'Crea tus propios videojuegos.', en: 'Make your own video games.' },
+    about: { es: 'Motor para crear juegos 2D y 3D, ligero y sin pagar licencias. Lo usan estudios independientes de todo el mundo.', en: 'A lightweight engine for 2D and 3D games, with no license fees. Used by indie studios worldwide.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'MIT', es: true, install: 'easy', status: 'active', official: true,
+    stars: 104000, week: 610, score: 93, sc: [97, 70, 96, 92], version: '4.5.1', days: 11, contributors: 2900, site: 'godotengine.org',
+    alts: [] },
+  { id: 'bitwarden/clients', name: 'Bitwarden', tasks: ['seguridad'], icon: 'key-round', hue: 255, shot: 'vault',
+    tag: { es: 'Guarda todas tus contraseñas de forma segura.', en: 'Keep all your passwords safe.' },
+    about: { es: 'Gestor de contraseñas para el ordenador, el móvil y el navegador. Rellena las contraseñas por ti y las sincroniza en todos tus dispositivos.', en: 'A password manager for computer, phone and browser. Fills in passwords for you and syncs them across all your devices.' },
+    os: ['windows', 'mac', 'linux', 'android', 'ios', 'web'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 12300, week: 65, score: 90, sc: [78, 48, 96, 95], version: '2025.10.0', days: 5, contributors: 300, site: 'bitwarden.com',
+    alts: ['keepassxreboot/keepassxc'] },
+  { id: 'keepassxreboot/keepassxc', name: 'KeePassXC', tasks: ['seguridad'], icon: 'lock-keyhole', hue: 140, shot: 'vault',
+    tag: { es: 'Gestor de contraseñas que no usa la nube.', en: 'A password manager that skips the cloud.' },
+    about: { es: 'Tus contraseñas en un archivo cifrado que solo controlas tú. Ideal si no quieres depender de ningún servicio de internet.', en: 'Your passwords in an encrypted file only you control. Ideal if you do not want to rely on any online service.' },
+    os: ['windows', 'mac', 'linux'], lic: 'open', licName: 'GPL-3.0', es: true, install: 'easy', status: 'active', official: true,
+    stars: 25500, week: 110, score: 88, sc: [84, 50, 94, 86], version: '2.7.10', days: 30, contributors: 220, site: 'keepassxc.org',
+    alts: ['bitwarden/clients'] },
+  { id: 'microsoft/vscode', name: 'VS Code', tasks: ['programar'], icon: 'code-xml', hue: 230, shot: 'code',
+    tag: { es: 'El editor de código más usado del mundo.', en: "The world's most popular code editor." },
+    about: { es: 'Editor de código gratuito con extensiones para casi cualquier lenguaje. La puerta de entrada habitual para aprender a programar.', en: 'A free code editor with extensions for almost any language. The usual starting point for learning to code.' },
+    os: ['windows', 'mac', 'linux', 'web'], lic: 'open', licName: 'MIT', es: true, install: 'easy', status: 'active', official: true,
+    stars: 179000, week: 520, score: 94, sc: [99, 62, 98, 99], version: '1.105', days: 7, contributors: 2300, site: 'code.visualstudio.com',
+    alts: [] },
+];
+// Para quién es cada proyecto (el resto es «listo para usar»)
+const FOR_DEVS = new Set(['morluto/rea', 'ggml-org/llama.cpp', 'NationalSecurityAgency/ghidra', 'microsoft/vscode', 'godotengine/godot']);
+P.forEach(p => { p.aud = FOR_DEVS.has(p.id) ? 'programar' : 'usar'; });
+const BY_ID = Object.fromEntries(P.map(p => [p.id, p]));
+const BY_LC = Object.fromEntries(P.map(p => [p.id.toLowerCase(), p]));
+
+// «Alternativa a X» → proyectos
+const SYN = {
+  'photoshop': { label: 'Photoshop', ids: ['GNOME/gimp', 'KDE/krita'] },
+  'lightroom': { label: 'Lightroom', ids: ['darktable-org/darktable'] },
+  'premiere': { label: 'Premiere', ids: ['KDE/kdenlive', 'mltframework/shotcut'] },
+  'capcut': { label: 'CapCut', ids: ['mltframework/shotcut', 'KDE/kdenlive'] },
+  'netflix': { label: 'Netflix', ids: ['jellyfin/jellyfin'] },
+  'google fotos': { label: 'Google Fotos', ids: ['immich-app/immich'], lang: 'es' },
+  'google photos': { label: 'Google Photos', ids: ['immich-app/immich'], lang: 'en' },
+  'chatgpt': { label: 'ChatGPT', ids: ['ollama/ollama'] },
+  'midjourney': { label: 'Midjourney', ids: ['comfyanonymous/ComfyUI'] },
+  'office': { label: 'Office', ids: ['LibreOffice/core'] },
+  'word': { label: 'Word', ids: ['LibreOffice/core'] },
+  'excel': { label: 'Excel', ids: ['LibreOffice/core'] },
+  'notion': { label: 'Notion', ids: ['AppFlowy-IO/AppFlowy'] },
+  'zapier': { label: 'Zapier', ids: ['n8n-io/n8n'] },
+  '1password': { label: '1Password', ids: ['bitwarden/clients', 'keepassxreboot/keepassxc'] },
+  'lastpass': { label: 'LastPass', ids: ['bitwarden/clients', 'keepassxreboot/keepassxc'] },
+  'garageband': { label: 'GarageBand', ids: ['LMMS/lmms', 'audacity/audacity'] },
+  'fl studio': { label: 'FL Studio', ids: ['LMMS/lmms'] },
+  'unity': { label: 'Unity', ids: ['godotengine/godot'] },
+  'ida pro': { label: 'IDA Pro', ids: ['NationalSecurityAgency/ghidra', 'morluto/rea'] },
+};
+
+const inTask = id => P.filter(p => p.tasks.includes(id)).sort((a, b) => b.score - a.score);
+const rankIn = (p, id) => inTask(id).indexOf(p) + 1;
+
+// ---------------------------------------------------------------------------
+// Filtros y orden (viven en la dirección: #/tarea/video?so=windows&lic=open)
+// ---------------------------------------------------------------------------
+const SORTS = {
+  relevancia: () => 0,
+  puntuacion: (a, b) => b.score - a.score,
+  estrellas: (a, b) => b.stars - a.stars,
+  auge: (a, b) => b.week - a.week,
+  reciente: (a, b) => a.days - b.days,
+  nombre: (a, b) => a.name.localeCompare(b.name),
+};
+const BASE_SORTS = ['puntuacion', 'estrellas', 'auge', 'reciente', 'nombre'];
+const sortKeys = ctx => (ctx && ctx.defaultSort === 'relevancia' ? ['relevancia', ...BASE_SORTS] : BASE_SORTS);
+const MULTI = ['tema', 'para', 'so', 'lic', 'inst', 'est'];
+const MIN_STARS = [0, 5000, 20000, 100000];
+const GROUPS = [
+  { k: 'tema', label: 'g_tema', opts: () => TASKS.map(x => [x.id, x[state.lang]]), test: (p, v) => p.tasks.includes(v) },
+  { k: 'para', label: 'g_para', opts: () => [['usar', t('o_usar')], ['programar', t('o_programar')]], test: (p, v) => p.aud === v },
+  { k: 'so', label: 'g_so', opts: () => Object.entries(OS_CAP[state.lang]), test: (p, v) => p.os.includes(v) },
+  { k: 'lic', label: 'g_lic', opts: () => [['open', t('o_open')], ['limited', t('o_limited')]], test: (p, v) => p.lic === v },
+  { k: 'inst', label: 'g_inst', opts: () => [['easy', t('o_easy')], ['steps', t('o_steps')], ['dev', t('o_dev')]], test: (p, v) => p.install === v },
+  { k: 'est', label: 'g_est', opts: () => [['active', t('st_active')], ['slow', t('st_slow')], ['dead', t('st_dead')], ['done', t('st_done')]], test: (p, v) => p.status === v },
+];
+
+function parseHash() {
+  const raw = location.hash.replace(/^#\/?/, '');
+  const qi = raw.indexOf('?');
+  let path = qi >= 0 ? raw.slice(0, qi) : raw;
+  try { path = decodeURIComponent(path); } catch {}
+  return { parts: path.split('/').filter(Boolean), query: new URLSearchParams(qi >= 0 ? raw.slice(qi + 1) : '') };
+}
+const emptyFilters = orden => ({ tema: [], para: [], so: [], lic: [], inst: [], est: [], es: false, min: 0, orden });
+function readFilters(query, defaultSort = 'puntuacion') {
+  const asked = query.get('orden');
+  const f = emptyFilters(asked && SORTS[asked] ? asked : defaultSort);
+  MULTI.forEach(k => { f[k] = (query.get(k) || '').split(',').filter(Boolean); });
+  f.es = query.get('es') === '1';
+  f.min = Number(query.get('min')) || 0;
+  return f;
+}
+function writeFilters(f, defaultSort) {
+  const out = [];
+  MULTI.forEach(k => { if (f[k].length) out.push(`${k}=${f[k].map(encodeURIComponent).join(',')}`); });
+  if (f.es) out.push('es=1');
+  if (f.min) out.push(`min=${f.min}`);
+  if (f.orden !== defaultSort) out.push(`orden=${f.orden}`);
+  return out.join('&');
+}
+function matches(p, f, skip = '') {
+  for (const g of GROUPS) {
+    if (g.k === skip || !f[g.k].length) continue;
+    if (!f[g.k].some(v => g.test(p, v))) return false;
+  }
+  if (skip !== 'es' && f.es && !p.es) return false;
+  if (skip !== 'min' && f.min && p.stars < f.min) return false;
+  return true;
+}
+const activeCount = f => MULTI.reduce((n, k) => n + f[k].length, 0) + (f.es ? 1 : 0) + (f.min ? 1 : 0);
+const currentFilters = () => readFilters(parseHash().query, state.listCtx ? state.listCtx.defaultSort : 'puntuacion');
+
+function setFilters(f) {
+  const ctx = state.listCtx;
+  const { parts } = parseHash();
+  const qs = writeFilters(f, ctx ? ctx.defaultSort : 'puntuacion');
+  const apply = () => {
+    history.replaceState(null, '', `#/${parts.map(encodeURIComponent).join('/')}${qs ? `?${qs}` : ''}`);
+    render();
+    if (state.sheetOpen) openFilterSheet();
+  };
+  // Con el panel de filtros del móvil abierto, sin transición: el panel se refresca en su sitio
+  if (state.sheetOpen) apply(); else withTransition('filter', apply);
+}
+
+// ---------------------------------------------------------------------------
+// Piezas de interfaz
+// ---------------------------------------------------------------------------
+function icons() {
+  if (window.lucide) window.lucide.createIcons();
+}
+
+const TONES = {
+  ok: 'bg-ok-soft text-ok',
+  warn: 'bg-warn-soft text-warn',
+  bad: 'bg-bad-soft text-bad',
+  done: 'bg-done-soft text-done',
+  brand: 'bg-brand-soft text-brand',
+};
+const chip = (tone, icon, text) =>
+  `<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${TONES[tone]}"><i data-lucide="${icon}" class="size-3.5" aria-hidden="true"></i>${esc(text)}</span>`;
+
+const appIcon = (p, box = 'size-10 rounded-xl', ic = 'size-5', glow = false) =>
+  `<div class="${box} grid shrink-0 place-items-center text-white ring-1 ring-white/10" style="background:linear-gradient(135deg, ${c(0.68, 0.16, p.hue)}, ${c(0.48, 0.18, p.hue + 35)});${glow ? `box-shadow:0 18px 50px -12px ${c(0.62, 0.2, p.hue)}` : ''}"><i data-lucide="${p.icon}" class="${ic}" aria-hidden="true"></i></div>`;
+
+const taskIcon = (task, box = 'size-9 rounded-lg', ic = 'size-4') =>
+  `<span class="tint grid ${box} shrink-0 place-items-center" style="--h:${task.hue}"><i data-lucide="${task.icon}" class="${ic}" aria-hidden="true"></i></span>`;
+
+function osChip(p) {
+  const os = OS[state.os][state.lang];
+  if (p.os.includes(state.os)) return chip('ok', 'circle-check', t('works_on')(os));
+  if (p.os.includes('server')) return chip('done', 'server', t('on_server'));
+  return chip('done', 'circle-minus', t('not_on')(os));
+}
+
+const arrowLink = (href, label) =>
+  `<a href="${href}" class="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand">${esc(label)}<i data-lucide="arrow-right" class="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true"></i></a>`;
+
+const eyebrow = text => `<p class="font-mono text-xs tracking-widest text-brand uppercase">${esc(text)}</p>`;
+
+const sectionHead = (eb, title, right = '') => `<div class="mb-8 flex items-end justify-between gap-4">
+  <div>${eyebrow(eb)}<h2 class="mt-2 text-3xl font-semibold tracking-tight text-balance md:text-4xl">${esc(title)}</h2></div>
+  ${right}
+</div>`;
+
+// Capturas ilustradas (sin imágenes externas)
+function shot(p, v = 0) {
+  const r = rng(`${p.id}:${v}`);
+  const h = p.hue + v * 18;
+  const box = style => `<div style="position:absolute;${style}"></div>`;
+  let bg = c(0.97, 0.004, 265);
+  let inner = '';
+  switch (p.shot) {
+    case 'video': {
+      bg = '#15171d';
+      inner += box(`left:16%;right:16%;top:7%;height:46%;border-radius:8px;background:linear-gradient(135deg,${c(0.72, 0.13, h)},${c(0.45, 0.16, h + 50)})`);
+      inner += box(`left:50%;top:30%;width:0;height:0;transform:translate(-40%,-50%);border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent rgba(255,255,255,.9)`);
+      for (let row = 0; row < 3; row++) {
+        let x = 3;
+        while (x < 94) {
+          const w = 7 + r() * 20;
+          if (x + w > 97) break;
+          inner += box(`left:${x}%;width:${w}%;top:${61 + row * 12}%;height:9%;border-radius:4px;background:${c(0.6, 0.12, h + row * 55)}`);
+          x += w + 1.2;
+        }
+      }
+      inner += box(`left:${32 + v * 17}%;top:57%;bottom:3%;width:2px;background:#fff`);
+      break;
+    }
+    case 'photo': {
+      inner += box(`left:0;top:0;bottom:0;width:8%;background:${c(0.92, 0.006, 265)}`);
+      for (let i = 0; i < 5; i++) inner += box(`left:2%;top:${8 + i * 13}%;width:4%;height:7%;border-radius:3px;background:${c(0.8, 0.012, 265)}`);
+      inner += `<div style="position:absolute;left:11%;right:23%;top:7%;bottom:7%;border-radius:6px;overflow:hidden;background:linear-gradient(${c(0.82, 0.08, h + 190)},${c(0.94, 0.04, h + 210)})">
+        ${box(`right:16%;top:12%;width:13%;aspect-ratio:1;border-radius:50%;background:${c(0.9, 0.13, 85)}`)}
+        ${box(`left:0;right:0;bottom:0;top:38%;background:${c(0.55, 0.09, h + 120)};clip-path:polygon(0 100%,0 62%,22% 12%,42% 55%,63% 0,100% 66%,100% 100%)`)}
+        ${box(`left:0;right:0;bottom:0;top:64%;background:${c(0.4, 0.08, h + 135)};clip-path:polygon(0 100%,0 45%,28% 0,58% 52%,84% 18%,100% 42%,100% 100%)`)}
+      </div>`;
+      inner += box(`right:0;top:0;bottom:0;width:20%;background:${c(0.955, 0.005, 265)}`);
+      for (let i = 0; i < 4; i++) {
+        inner += box(`right:3%;width:14%;top:${14 + i * 19}%;height:2px;background:${c(0.82, 0.01, 265)}`);
+        inner += box(`right:${4 + r() * 10}%;top:calc(${14 + i * 19}% - 4px);width:10px;height:10px;border-radius:50%;background:${c(0.52, 0.2, 265)}`);
+      }
+      break;
+    }
+    case 'paint': {
+      bg = '#2a2d35';
+      inner += box(`left:10%;right:14%;top:8%;bottom:8%;border-radius:6px;background:#fff`);
+      for (let i = 0; i < 7; i++) inner += box(`left:${16 + r() * 36}%;top:${16 + r() * 58}%;width:${14 + r() * 20}%;height:${3 + r() * 5}%;border-radius:999px;transform:rotate(${-40 + r() * 80}deg);background:${c(0.64, 0.17, h + i * 47)};opacity:.9`);
+      inner += box(`right:2.5%;top:10%;width:8%;aspect-ratio:1;border-radius:50%;background:conic-gradient(#f43,#fc3,#5d5,#3cf,#55f,#e4e,#f43)`);
+      for (let i = 0; i < 4; i++) inner += box(`right:3.5%;top:${30 + i * 12}%;width:6%;height:7%;border-radius:4px;background:${c(0.4, 0.02, 265)}`);
+      break;
+    }
+    case 'chat': {
+      bg = '#fff';
+      inner += box(`left:0;top:0;bottom:0;width:22%;background:${c(0.955, 0.012, h)}`);
+      for (let i = 0; i < 6; i++) inner += box(`left:3%;top:${9 + i * 10}%;width:${10 + r() * 7}%;height:4%;border-radius:3px;background:${c(0.85, 0.025, h)}`);
+      inner += box(`right:5%;top:9%;width:${30 + v * 6}%;height:11%;border-radius:12px 12px 4px 12px;background:${c(0.55, 0.17, h)}`);
+      inner += box(`left:27%;top:25%;width:58%;height:${30 + v * 4}%;border-radius:12px 12px 12px 4px;background:${c(0.96, 0.005, 265)}`);
+      for (let i = 0; i < 4; i++) inner += box(`left:30%;top:${30 + i * 7}%;width:${48 - r() * 18}%;height:3.6%;border-radius:2px;background:${c(0.8, 0.01, 265)}`);
+      inner += box(`left:27%;right:5%;bottom:7%;height:11%;border-radius:999px;background:#fff;box-shadow:0 0 0 1px ${c(0.88, 0.01, 265)}`);
+      inner += box(`right:6.5%;bottom:9.2%;height:6.5%;aspect-ratio:1;border-radius:50%;background:${c(0.55, 0.17, h)}`);
+      break;
+    }
+    case 'doc': {
+      bg = c(0.93, 0.008, 265);
+      inner += box(`left:0;right:0;top:0;height:12%;background:${c(0.97, 0.006, 265)}`);
+      for (let i = 0; i < 8; i++) inner += box(`left:${3 + i * 5.5}%;top:3.5%;width:3.6%;height:5%;border-radius:3px;background:${c(0.8, 0.03, h)}`);
+      inner += box(`left:20%;right:20%;top:17%;bottom:0;background:#fff;box-shadow:0 0 0 1px ${c(0.88, 0.006, 265)}`);
+      inner += box(`left:25%;top:23%;width:28%;height:6%;border-radius:3px;background:${c(0.5, 0.15, h)}`);
+      for (let i = 0; i < 6; i++) inner += box(`left:25%;top:${35 + i * 9}%;width:${50 - r() * 14}%;height:3.4%;border-radius:2px;background:${c(0.86, 0.006, 265)}`);
+      if (v === 1) for (let i = 0; i < 5; i++) inner += box(`left:${56 + i * 4}%;bottom:12%;width:2.6%;height:${8 + r() * 22}%;background:${c(0.6, 0.14, h + 40)};border-radius:2px 2px 0 0`);
+      break;
+    }
+    case 'audio': {
+      bg = '#121318';
+      for (let tr = 0; tr < 2; tr++) {
+        inner += box(`left:3%;right:3%;top:${10 + tr * 44}%;height:36%;border-radius:8px;background:${c(0.25, 0.03, h + tr * 40)}`);
+        for (let i = 0; i < 56; i++) {
+          const hh = 6 + r() * 26;
+          inner += box(`left:${5 + i * 1.62}%;width:0.9%;top:${28 + tr * 44 - hh / 2}%;height:${hh}%;border-radius:2px;background:${c(0.74, 0.15, h + tr * 40)}`);
+        }
+      }
+      inner += box(`left:${30 + v * 20}%;top:6%;bottom:6%;width:2px;background:#fff`);
+      break;
+    }
+    case 'vault': {
+      inner += box(`left:5%;right:5%;top:7%;height:11%;border-radius:999px;background:#fff;box-shadow:0 0 0 1px ${c(0.9, 0.006, 265)}`);
+      for (let i = 0; i < 4; i++) {
+        const y = 24 + i * 18.5;
+        inner += box(`left:5%;right:5%;top:${y}%;height:14.5%;border-radius:10px;background:#fff;box-shadow:0 0 0 1px ${c(0.91, 0.006, 265)}`);
+        inner += box(`left:8%;top:${y + 3}%;height:8.5%;aspect-ratio:1;border-radius:50%;background:${c(0.66, 0.14, h + i * 70)}`);
+        inner += box(`left:17%;top:${y + 3.3}%;width:${26 - i * 3}%;height:3.4%;border-radius:2px;background:${c(0.4, 0.02, 265)}`);
+        inner += box(`left:17%;top:${y + 8.6}%;width:18%;height:2.8%;border-radius:2px;background:${c(0.85, 0.006, 265)}`);
+        inner += box(`right:8%;top:${y + 4.2}%;width:4.2%;height:6%;border-radius:3px;background:${c(0.55, 0.13, 150)}`);
+      }
+      break;
+    }
+    case 'gallery': {
+      bg = c(0.98, 0.003, 265);
+      inner += box(`left:0;right:0;top:0;height:11%;background:#fff;box-shadow:0 1px 0 ${c(0.9, 0.006, 265)}`);
+      inner += box(`left:3%;top:3.5%;width:20%;height:4%;border-radius:3px;background:${c(0.55, 0.15, h)}`);
+      for (let i = 0; i < 15; i++) {
+        const col = i % 5, row = Math.floor(i / 5);
+        inner += box(`left:${3 + col * 19}%;top:${16 + row * 28}%;width:18%;height:25%;border-radius:6px;background:linear-gradient(135deg,${c(0.78, 0.09, h + r() * 300)},${c(0.52, 0.12, h + r() * 300)})`);
+      }
+      break;
+    }
+    case 'media': {
+      bg = '#101218';
+      inner += box(`left:4%;top:7%;width:26%;height:6%;border-radius:3px;background:${c(0.8, 0.03, h)}`);
+      inner += box(`left:4%;top:16%;width:16%;height:4%;border-radius:3px;background:${c(0.45, 0.02, h)}`);
+      for (let i = 0; i < 6; i++) inner += box(`left:${4 + i * 15.6}%;top:27%;width:14%;height:62%;border-radius:6px;background:linear-gradient(180deg,${c(0.62, 0.13, h + r() * 220)},${c(0.3, 0.07, h + r() * 220)})`);
+      break;
+    }
+    case 'code': {
+      bg = '#14161c';
+      inner += box(`left:0;top:0;bottom:0;width:15%;background:#1b1e26`);
+      for (let i = 0; i < 5; i++) inner += box(`left:2.5%;top:${8 + i * 9}%;width:${8 + r() * 4}%;height:3.5%;border-radius:2px;background:#2f3440`);
+      for (let i = 0; i < 9; i++) {
+        const y = 7 + i * 9.6;
+        inner += box(`left:17%;top:${y}%;width:2%;height:3.8%;border-radius:2px;background:#353a46`);
+        let x = 22 + (i % 3) * 3;
+        const n = 1 + Math.floor(r() * 3);
+        for (let k = 0; k < n; k++) {
+          const w = 6 + r() * 15;
+          if (x + w > 96) break;
+          inner += box(`left:${x}%;top:${y}%;width:${w}%;height:3.8%;border-radius:2px;background:${c(0.74, 0.13, [h, 30, 150, 200][Math.floor(r() * 4)])}`);
+          x += w + 1.5;
+        }
+      }
+      break;
+    }
+    case 'term': {
+      bg = '#0f1115';
+      inner += box(`left:0;right:0;top:0;height:10%;background:#1d2027`);
+      ['#ff5f57', '#febc2e', '#28c840'].forEach((col, i) => { inner += box(`left:${3 + i * 3}%;top:3%;height:4%;aspect-ratio:1;border-radius:50%;background:${col}`); });
+      const lines = ((p.term && p.term[state.lang]) || []).map(l =>
+        l.startsWith('$') ? `<span style="color:${c(0.8, 0.15, 150)}">${esc(l)}</span>`
+        : l.startsWith('✔') ? `<span style="color:${c(0.85, 0.1, 200)}">${esc(l)}</span>`
+        : esc(l));
+      inner += `<div style="position:absolute;left:4%;right:4%;top:16%;font:500 clamp(9px,2.6cqw,13px)/1.7 'Geist Mono',ui-monospace,monospace;color:#d7dbe4;white-space:pre;overflow:hidden">${lines.join('\n')}</div>`;
+      break;
+    }
+    case 'nodes': {
+      inner += `<div style="position:absolute;inset:0;background-image:radial-gradient(${c(0.84, 0.01, 265)} 1px,transparent 1px);background-size:14px 14px"></div>`;
+      inner += `<svg viewBox="0 0 100 62.5" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><path d="M22 21 C 33 21, 33 34, 44 34 M62 34 C 71 34, 71 19, 80 19 M62 34 C 71 34, 71 45, 80 45" stroke="${c(0.6, 0.12, h)}" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
+      [[6, 22, 16, 22], [44, 41.6, 18, 26], [80, 19.2, 16, 22], [80, 60.8, 16, 22]].forEach(([x, y, w, hh], i) => {
+        inner += `<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${hh}%;border-radius:8px;background:#fff;box-shadow:0 0 0 1px ${c(0.88, 0.01, 265)},0 2px 6px rgb(0 0 0/.06);overflow:hidden"><div style="height:28%;background:${c(0.62, 0.15, h + i * 45)}"></div>${box(`left:10%;top:44%;width:70%;height:12%;border-radius:2px;background:${c(0.88, 0.006, 265)}`)}${box(`left:10%;top:66%;width:50%;height:12%;border-radius:2px;background:${c(0.88, 0.006, 265)}`)}</div>`;
+      });
+      break;
+    }
+    case 'game': {
+      bg = c(0.85, 0.06, 220);
+      inner += box(`inset:0;background:linear-gradient(${c(0.78, 0.1, 230)},${c(0.93, 0.05, 200)})`);
+      inner += box(`right:12%;top:12%;width:9%;aspect-ratio:1;border-radius:50%;background:${c(0.93, 0.14, 90)}`);
+      inner += box(`left:0;right:0;bottom:0;height:46%;background:${c(0.64, 0.15, 140)}`);
+      inner += box(`left:20%;right:20%;bottom:0;height:46%;background:${c(0.42, 0.02, 265)};clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)`);
+      for (let i = 0; i < 5; i++) inner += box(`left:49.4%;bottom:${4 + i * 8.5}%;width:1.2%;height:4%;background:#fff;opacity:.8`);
+      [[8, 47], [18, 50], [76, 46], [87, 51]].forEach(([x, b]) => {
+        inner += box(`left:${x + 3}%;bottom:${b - 4}%;width:1%;height:5%;background:${c(0.38, 0.06, 60)}`);
+        inner += box(`left:${x}%;bottom:${b}%;width:7%;aspect-ratio:1;border-radius:50%;background:${c(0.48, 0.13, 145)}`);
+      });
+      inner += box(`left:${42 + v * 3}%;bottom:7%;width:14%;height:13%;border-radius:8px 8px 4px 4px;background:${c(0.6, 0.2, 27)}`);
+      inner += box(`left:${44 + v * 3}%;bottom:4%;width:3.5%;height:6%;border-radius:2px;background:#222`);
+      inner += box(`left:${51.5 + v * 3}%;bottom:4%;width:3.5%;height:6%;border-radius:2px;background:#222`);
+      break;
+    }
+  }
+  return `<div class="relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10" style="background:${bg};container-type:inline-size" role="img" aria-label="${esc(t('shot_of')(p.name))}">${inner}</div>`;
+}
+
+// vt: da a la tarjeta un nombre de transición para que se deslice a su nuevo sitio al filtrar u ordenar
+function card(p, { rank = 0, week = false, vt = false } = {}) {
+  const L = state.lang;
+  const extra = [];
+  if (p.fakes) extra.push(chip('bad', 'triangle-alert', t('chip_fakes')));
+  if (p.lic === 'limited') extra.push(chip('warn', 'lock-keyhole', t('lic_limited_short')));
+  const metric = week
+    ? chip('ok', 'trending-up', `+${fmt(p.week)} ★ ${t('per_week')}`)
+    : `<span class="inline-flex items-center gap-1 font-mono text-xs text-muted"><i data-lucide="star" class="size-3.5" aria-hidden="true"></i>${fmtShort(p.stars)}</span>`;
+  return `<a href="#/${p.id}" ${vt ? `style="view-transition-name:v-${p.id.replace(/[^a-zA-Z0-9]/g, '-')};view-transition-class:pcard"` : ''} class="spot group block h-full rounded-2xl bg-card p-2.5 ring-1 ring-line transition duration-300 ease-out-expo hover:ring-brand/40 motion-safe:hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+    ${shot(p, 0)}
+    <div class="mt-3 flex items-start gap-3 px-1.5">
+      ${appIcon(p)}
+      <div class="min-w-0 flex-1">
+        <div class="flex items-baseline gap-2"><h3 class="truncate font-semibold tracking-tight">${esc(p.name)}</h3>${rank ? `<span class="font-mono text-xs text-muted">#${rank}</span>` : ''}</div>
+        <p class="line-clamp-2 text-sm leading-snug text-muted">${esc(p.tag[L])}</p>
+      </div>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-1.5 px-1.5 pb-1.5">${metric}${osChip(p)}${extra.join('')}</div>
+  </a>`;
+}
+
+const logo = () => `<a href="#/" class="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label="${t('home')}">
+  <span class="grid size-8 place-items-center rounded-lg bg-linear-to-br from-brand to-cyan text-on-brand shadow-[0_0_24px_-6px_var(--color-brand)]"><i data-lucide="sparkles" class="size-4" aria-hidden="true"></i></span>
+  <span>All Open Project</span>
+</a>`;
+
+const langToggle = () => `<div class="flex shrink-0 rounded-full bg-line/60 p-0.5 font-mono text-xs font-semibold" role="group" aria-label="${t('language')}">
+  ${['es', 'en'].map(l => `<button type="button" data-lang="${l}" aria-pressed="${state.lang === l}" class="rounded-full px-2.5 py-1 transition ${state.lang === l ? 'bg-card text-ink shadow-sm ring-1 ring-line' : 'text-muted hover:text-ink'}">${l.toUpperCase()}</button>`).join('')}
+</div>`;
+
+const kbdHint = () => (state.os === 'mac' ? '⌘K' : 'Ctrl K');
+
+function megaContent() {
+  const L = state.lang;
+  const sc = (href, icon, label) => `<li><a href="${href}" class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-muted transition hover:bg-line/60 hover:text-ink"><i data-lucide="${icon}" class="size-4 shrink-0 text-brand" aria-hidden="true"></i>${esc(label)}</a></li>`;
+  return `<div class="grid grid-cols-[1fr_220px] gap-4">
+    <div>
+      <p class="px-2 font-mono text-xs tracking-widest text-muted uppercase">${t('mega_tasks')}</p>
+      <ul class="mt-2 grid grid-cols-2 gap-1">${TASKS.map(task => `<li><a href="#/tarea/${task.id}" class="flex items-center gap-3 rounded-xl p-2 transition hover:bg-line/60">${taskIcon(task)}<span class="min-w-0"><span class="block font-medium">${task[L]}</span><span class="block font-mono text-xs text-muted">${t('programs')(inTask(task.id).length)}</span></span></a></li>`).join('')}</ul>
+    </div>
+    <div class="border-l border-line pl-4">
+      <p class="px-2 font-mono text-xs tracking-widest text-muted uppercase">${t('mega_shortcuts')}</p>
+      <ul class="mt-2 space-y-0.5">
+        ${sc('#/top', 'trending-up', t('top_week'))}
+        ${sc('#/alternativas', 'repeat', t('alts_title'))}
+        ${sc(`#/explorar?para=usar&so=${state.os}&inst=easy`, 'mouse-pointer-click', t('mg_ready')(OS[state.os][L]))}
+        ${sc('#/explorar?para=programar', 'code-xml', t('mg_dev'))}
+        ${sc('#/alertas', 'triangle-alert', t('alerts_title'))}
+        ${sc('#/explorar', 'layout-grid', t('mg_all'))}
+      </ul>
+    </div>
+  </div>`;
+}
+
+function header() {
+  const cur = parseHash().parts[0] || '';
+  const pill = on => `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${on ? 'bg-line text-ink' : 'text-muted hover:bg-line/60 hover:text-ink'}`;
+  const link = (href, key, label, extra = '') => `<a href="${href}" ${cur === key ? 'aria-current="page"' : ''} class="${pill(cur === key)}">${label}${extra}</a>`;
+  const iconBtn = 'grid size-9 shrink-0 place-items-center rounded-full text-muted transition hover:bg-line/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand';
+  return `<header class="vt-fixed sticky top-0 z-40 border-b border-line bg-bg/70 backdrop-blur-xl" style="view-transition-name:site-header">
+    <div class="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 md:px-6">
+      <button type="button" data-action="menu" class="${iconBtn} -ml-1 text-ink lg:hidden" aria-label="${t('open_menu')}"><i data-lucide="menu" class="size-5" aria-hidden="true"></i></button>
+      ${logo()}
+      <nav class="ml-3 hidden items-center gap-1 lg:flex" aria-label="${t('main_nav')}">
+        <div class="relative" data-mega-wrap>
+          <button type="button" data-action="mega" aria-expanded="false" aria-controls="mega" class="${pill(cur === 'tarea' || cur === 'explorar')}">${t('nav_explore')}<i data-lucide="chevron-down" class="size-4" aria-hidden="true"></i></button>
+          <div id="mega" class="fade-in absolute top-full left-0 z-50 mt-2 hidden w-[680px] rounded-2xl bg-card/95 p-4 shadow-2xl shadow-black/30 ring-1 ring-line backdrop-blur-xl">${megaContent()}</div>
+        </div>
+        ${link('#/top', 'top', t('nav_trending'))}
+        ${link('#/alternativas', 'alternativas', t('nav_alts'))}
+        ${link('#/alertas', 'alertas', t('nav_alerts'), '<span class="size-2 rounded-full bg-bad shadow-[0_0_10px_var(--color-bad)]" aria-hidden="true"></span>')}
+        <button type="button" data-action="agents" class="${pill(false)}">${t('nav_agents')}</button>
+      </nav>
+      <div class="ml-auto flex items-center gap-1.5">
+        <button type="button" data-action="search" class="hidden h-9 items-center gap-2 whitespace-nowrap rounded-full bg-line/50 pr-1.5 pl-3 text-sm text-muted ring-1 ring-line transition hover:text-ink xl:inline-flex"><i data-lucide="search" class="size-4" aria-hidden="true"></i>${t('search')}…<kbd class="ml-6 whitespace-nowrap rounded-md bg-bg px-1.5 py-0.5 font-mono text-[11px] text-muted ring-1 ring-line">${kbdHint()}</kbd></button>
+        <button type="button" data-action="search" class="${iconBtn} xl:hidden" aria-label="${t('search')}"><i data-lucide="search" class="size-5" aria-hidden="true"></i></button>
+        <button type="button" data-action="theme" class="${iconBtn}" aria-label="${state.theme === 'dark' ? t('theme_light') : t('theme_dark')}"><i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="size-[18px]" aria-hidden="true"></i></button>
+        ${langToggle()}
+      </div>
+    </div>
+  </header>`;
+}
+
+function alertBar() {
+  if (!state.alert) return '';
+  return `<div class="border-b border-bad/20 bg-bad-soft text-bad">
+    <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 text-sm md:px-6">
+      <i data-lucide="triangle-alert" class="size-4 shrink-0" aria-hidden="true"></i>
+      <p class="min-w-0 flex-1"><span class="font-semibold">${t('alert')}:</span> ${t('alert_text')}</p>
+      <a href="#/alertas" class="shrink-0 font-semibold underline underline-offset-2">${t('alert_cta')}</a>
+      <button type="button" data-action="close-alert" class="grid size-7 shrink-0 place-items-center rounded-full hover:bg-bad/10" aria-label="${t('close')}"><i data-lucide="x" class="size-4" aria-hidden="true"></i></button>
+    </div>
+  </div>`;
+}
+
+function footer() {
+  const L = state.lang;
+  const li = inner => `<li>${inner}</li>`;
+  const a = (href, label) => li(`<a href="${href}" class="text-muted transition hover:text-ink">${esc(label)}</a>`);
+  const b = (attrs, label) => li(`<button type="button" ${attrs} class="text-muted transition hover:text-ink">${esc(label)}</button>`);
+  return `<footer class="mt-8 border-t border-line">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.4fr_1fr_1fr] md:px-6">
+      <div>
+        ${logo()}
+        <p class="mt-3 max-w-xs text-sm text-pretty text-muted">${t('footer_tagline')}</p>
+        <p class="mt-4 inline-flex items-center gap-2 rounded-full bg-ok-soft px-3 py-1 text-xs font-medium text-ok"><i data-lucide="shield-check" class="size-3.5" aria-hidden="true"></i>${t('no_ads')}</p>
+      </div>
+      <nav aria-label="${t('nav_explore')}">
+        <p class="font-mono text-xs tracking-widest text-muted uppercase">${t('nav_explore')}</p>
+        <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">${TASKS.map(task => a(`#/tarea/${task.id}`, task[L])).join('')}${a('#/explorar', t('mg_all'))}</ul>
+      </nav>
+      <nav aria-label="${t('footer_nav')}">
+        <p class="font-mono text-xs tracking-widest text-muted uppercase">${t('ft_project')}</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          ${a('#/top', t('nav_trending'))}${a('#/alternativas', t('nav_alts'))}${a('#/alertas', t('nav_alerts'))}
+          ${b('data-action="agents"', t('f_agents'))}
+          ${b(`data-action="toast" data-msg="${esc(t('toast_method'))}"`, t('f_method'))}
+          ${b(`data-action="toast" data-msg="${esc(t('toast_data'))}"`, t('f_data'))}
+          ${b(`data-action="toast" data-msg="${esc(t('toast_report'))}"`, t('f_report'))}
+        </ul>
+      </nav>
+    </div>
+    <div class="border-t border-line">
+      <div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 pt-4 pb-20 font-mono text-xs text-muted md:px-6"><span>© 2026 All Open Project</span><span>${t('mock_note')}</span></div>
+    </div>
+  </footer>`;
+}
+
+function mockPanel() {
+  const L = state.lang;
+  return `<div class="vt-fixed fixed bottom-3 left-3 z-50 flex items-center gap-2 rounded-full bg-term/90 py-1.5 pr-1.5 pl-3 text-xs text-term-ink shadow-lg ring-1 ring-white/10 backdrop-blur" style="view-transition-name:mock-panel">
+    <i data-lucide="flask-conical" class="size-3.5" aria-hidden="true"></i>
+    <span class="hidden sm:inline">${t('mock')}</span>
+    <label class="flex items-center gap-1"><span class="opacity-70">${t('simulate')}</span>
+      <select data-action="os" class="rounded-full bg-white/15 px-2 py-0.5 text-term-ink outline-none">
+        ${USER_OS.map(o => `<option value="${o}" class="text-black" ${state.os === o ? 'selected' : ''}>${OS[o][L]}</option>`).join('')}
+      </select>
+    </label>
+  </div>`;
+}
+
+function searchBox(id, big = false) {
+  return `<form data-action="search-submit" class="relative" role="search">
+    <label for="q-${id}" class="sr-only">${t('search')}</label>
+    <i data-lucide="search" class="pointer-events-none absolute top-1/2 left-4 z-10 size-5 -translate-y-1/2 text-muted" aria-hidden="true"></i>
+    <input id="q-${id}" data-search="${id}" type="search" autocomplete="off" placeholder="${esc(big ? t('hero_ph') : t('search_ph'))}" class="w-full rounded-2xl bg-card/80 py-4 pr-4 pl-12 text-base text-ink caret-brand shadow-xl shadow-black/20 ring-1 ring-line backdrop-blur-xl outline-none transition placeholder:text-muted/80 focus:ring-2 focus:ring-brand ${big ? 'md:py-5 md:pr-28 md:text-lg' : ''}" />
+    ${big ? `<kbd class="pointer-events-none absolute top-1/2 right-4 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-bg px-2 py-1 font-mono text-xs text-muted ring-1 ring-line md:block">${kbdHint()}</kbd>` : ''}
+    <div data-suggest="${id}" class="fade-in absolute inset-x-0 top-full z-30 mt-2 hidden overflow-hidden rounded-2xl bg-card text-left shadow-2xl shadow-black/30 ring-1 ring-line"></div>
+  </form>`;
+}
+
+// ---------------------------------------------------------------------------
+// Portada
+// ---------------------------------------------------------------------------
+function ticker(items) {
+  const row = dup => items.map(p => `<a href="#/${p.id}" ${dup ? 'tabindex="-1"' : ''} class="inline-flex shrink-0 items-center gap-2 pr-10 font-mono text-sm text-muted transition hover:text-ink">${appIcon(p, 'size-5 rounded-md', 'size-3')}<span class="text-ink">${esc(p.name)}</span><span class="text-ok">▲ +${fmt(p.week)} ★</span></a>`).join('');
+  return `<div class="border-y border-line bg-card/40 py-3 backdrop-blur" aria-label="${t('top_week')}">
+    <div class="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+      <div class="marquee flex w-max"><div class="flex">${row(false)}</div><div class="flex" aria-hidden="true">${row(true)}</div></div>
+    </div>
+  </div>`;
+}
+
+function tasksBento() {
+  const L = state.lang;
+  const tile = (task, extra = '', cls = '') => `<a href="#/tarea/${task.id}" class="spot group flex flex-col justify-between gap-4 rounded-2xl bg-card p-5 ring-1 ring-line transition duration-300 ease-out-expo hover:ring-brand/40 motion-safe:hover:-translate-y-0.5 ${cls}">
+    <div class="flex items-start justify-between">${taskIcon(task, 'size-11 rounded-xl transition duration-300 group-hover:shadow-[0_0_28px_-6px_currentColor]', 'size-5')}<i data-lucide="arrow-up-right" class="size-4 text-muted transition group-hover:text-brand" aria-hidden="true"></i></div>
+    ${extra}
+    <div><p class="text-lg font-semibold tracking-tight">${task[L]}</p><p class="font-mono text-xs text-muted">${t('programs')(inTask(task.id).length)}</p></div>
+  </a>`;
+  const get = id => TASKS.find(x => x.id === id);
+  const iaTop = [...inTask('ia')].sort((a, b) => b.week - a.week).slice(0, 3);
+  const iaExtra = `<div class="space-y-2">${iaTop.map(p => `<div class="flex items-center gap-3 rounded-xl bg-bg/60 p-2 ring-1 ring-line">${appIcon(p, 'size-8 rounded-lg', 'size-4')}<span class="min-w-0 flex-1 truncate text-sm font-medium">${esc(p.name)}</span><span class="font-mono text-xs text-ok">▲ +${fmt(p.week)}</span></div>`).join('')}<p class="pt-1 font-mono text-xs text-brand">${t('ia_note')}</p></div>`;
+  const progTop = inTask('programar').slice(0, 4);
+  const progExtra = `<div class="flex items-center gap-3"><span class="flex -space-x-2">${progTop.map(p => appIcon(p, 'size-8 rounded-lg ring-2 ring-card', 'size-4')).join('')}</span><span class="truncate font-mono text-xs text-muted">${progTop.map(p => esc(p.name)).join(' · ')}</span></div>`;
+  const small = ['fotos', 'video', 'oficina', 'musica', 'juegos', 'seguridad'].map(id => tile(get(id)));
+  return `<div class="grid auto-rows-[minmax(10rem,auto)] grid-cols-2 gap-3 md:grid-cols-4">
+    ${tile(get('ia'), iaExtra, 'col-span-2 row-span-2')}
+    ${small.join('')}
+    ${tile(get('programar'), progExtra, 'col-span-2')}
+  </div>`;
+}
+
+function trendingBento(items) {
+  const L = state.lang;
+  const [f, ...rest] = items;
+  const featured = `<a href="#/${f.id}" class="spot group flex flex-col gap-4 rounded-2xl bg-card p-4 ring-1 ring-line transition duration-300 ease-out-expo hover:ring-brand/40 sm:col-span-2 md:row-span-2 md:p-5">
+    <div class="flex items-center justify-between gap-2 font-mono text-xs"><span class="text-brand">#1 · ${t('per_week')}</span>${f.fakes ? chip('bad', 'triangle-alert', t('chip_fakes')) : ''}</div>
+    ${shot(f, 0)}
+    <div class="flex items-start gap-3">${appIcon(f, 'size-12 rounded-xl', 'size-6', true)}<div class="min-w-0 flex-1"><h3 class="text-xl font-semibold tracking-tight">${esc(f.name)}</h3><p class="text-sm text-muted">${esc(f.tag[L])}</p></div></div>
+    <div class="mt-auto flex items-end justify-between gap-4 rounded-xl bg-bg/60 p-3 ring-1 ring-line">
+      <div><p class="font-mono text-3xl font-semibold tracking-tight text-ok">+${fmt(f.week)}</p><p class="text-xs text-muted">★ ${t('per_week')} · ${fmtShort(f.stars)} ${t('in_total')}</p></div>
+      <div class="w-36 sm:w-44">${spark(sparkData(f), true)}</div>
+    </div>
+  </a>`;
+  // En el móvil, el resto va en una fila deslizable para no alargar la página; desde sm, en rejilla
+  const cards = rest.map((p, i) => card(p, { week: true, rank: i + 2 }));
+  return `<div class="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+    ${featured}
+    <div class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:hidden">${cards.map(x => `<div class="w-[78%] shrink-0 snap-start">${x}</div>`).join('')}</div>
+    ${cards.map(x => `<div class="hidden sm:block">${x}</div>`).join('')}
+  </div>`;
+}
+
+function agentsSection() {
+  const es = state.lang === 'es';
+  const col = { dim: 'rgb(255 255 255 / .45)', key: c(0.84, 0.12, 200), str: c(0.82, 0.15, 150), num: c(0.86, 0.13, 85), fn: c(0.76, 0.14, 245) };
+  const s = (color, text) => `<span style="color:${color}">${esc(text)}</span>`;
+  const kv = (k, v, type = 'str') => `${s(col.key, `"${k}"`)}: ${s(col[type], type === 'str' ? `"${v}"` : v)}`;
+  const lines = [
+    `${s(col.dim, '›')} ${s(col.dim, t('term_user'))}`,
+    `${s(col.fn, es ? 'recomendar' : 'recommend')}(${s(col.key, es ? 'necesidad' : 'need')}: ${s(col.str, es ? '"editar vídeo"' : '"edit video"')}, ${s(col.key, es ? 'sistema' : 'os')}: ${s(col.str, '"windows"')})`,
+    '',
+    `${s(col.dim, '←')} [`,
+    `  { ${kv('name', 'Kdenlive')}, ${kv('score', '91', 'num')}, ${kv('verified', 'true', 'num')},`,
+    `    ${kv('official_download', 'https://kdenlive.org')} },`,
+    `  { ${kv('name', 'Shotcut')}, ${kv('score', '88', 'num')}, ${kv('verified', 'true', 'num')} }`,
+    ']',
+  ];
+  const point = (icon, text) => `<li class="flex items-start gap-3"><span class="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand ring-1 ring-brand/20"><i data-lucide="${icon}" class="size-4" aria-hidden="true"></i></span><span class="pt-1.5 text-sm">${esc(text)}</span></li>`;
+  return `<section class="relative isolate overflow-hidden border-y border-line bg-card/30">
+    <div aria-hidden="true" class="glow pointer-events-none absolute top-1/2 right-[-12rem] -z-10 size-[34rem] -translate-y-1/2 rounded-full"></div>
+    <div class="reveal mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:px-6 md:py-24">
+      <div>
+        ${eyebrow(t('eb_agents'))}
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-balance md:text-4xl">${t('agents_home_title')}</h2>
+        <p class="mt-4 text-lg text-pretty text-muted">${t('agents_home_text')}</p>
+        <ul class="mt-6 space-y-3">${point('plug-zap', t('ap_mcp'))}${point('braces', t('ap_api'))}${point('file-text', t('ap_md'))}</ul>
+        <button type="button" data-action="agents" class="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand shadow-[0_0_30px_-8px_var(--color-brand)] transition hover:brightness-110 active:scale-[.98]"><i data-lucide="bot" class="size-4" aria-hidden="true"></i>${t('agents_cta')}</button>
+      </div>
+      <div class="overflow-hidden rounded-2xl bg-term shadow-2xl shadow-black/40 ring-1 ring-white/10">
+        <div class="flex items-center gap-2 border-b border-white/10 px-4 py-3"><span class="size-3 rounded-full bg-[#ff5f57]"></span><span class="size-3 rounded-full bg-[#febc2e]"></span><span class="size-3 rounded-full bg-[#28c840]"></span><span class="ml-3 font-mono text-xs text-term-ink/60">mcp · nuestraweb.org</span></div>
+        <pre class="no-scrollbar overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-term-ink"><code>${lines.join('\n')}</code></pre>
+      </div>
+    </div>
+  </section>`;
+}
+
+function newsletter() {
+  return `<section class="reveal mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
+    <div class="relative isolate overflow-hidden rounded-3xl bg-card ring-1 ring-line">
+      <div aria-hidden="true" class="glow pointer-events-none absolute -top-48 left-1/2 -z-10 h-80 w-[44rem] -translate-x-1/2 rounded-full"></div>
+      <div aria-hidden="true" class="bg-grid pointer-events-none absolute inset-0 -z-10 opacity-50"></div>
+      <div class="flex flex-col items-start gap-6 px-6 py-10 md:flex-row md:items-center md:px-10">
+        <div class="flex-1">
+          ${eyebrow(t('eb_news'))}
+          <h2 class="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">${t('news_title')}</h2>
+          <p class="mt-2 text-muted">${t('news_sub')}</p>
+        </div>
+        <form data-action="subscribe" class="flex w-full gap-2 md:w-auto">
+          <label class="sr-only" for="email">Email</label>
+          <input id="email" type="email" required placeholder="${t('email_ph')}" class="min-w-0 flex-1 rounded-full bg-bg px-4 py-3 text-ink caret-brand ring-1 ring-line outline-none placeholder:text-muted/70 focus:ring-2 focus:ring-brand md:w-72" />
+          <button class="shrink-0 rounded-full bg-brand px-5 py-3 font-semibold text-on-brand shadow-[0_0_30px_-8px_var(--color-brand)] transition hover:brightness-110 active:scale-[.98]">${t('subscribe')}</button>
+        </form>
+      </div>
+    </div>
+  </section>`;
+}
+
+function home() {
+  const L = state.lang;
+  const byWeek = [...P].sort((a, b) => b.week - a.week);
+  const weekStars = P.reduce((sum, p) => sum + p.week, 0);
+  const quick = [
+    ['#/alternativas-a/photoshop', 'repeat', t('qs_photoshop')],
+    ['#/tarea/ia', 'sparkles', t('qs_ai')],
+    [`#/alternativas-a/${encodeURIComponent(L === 'es' ? 'google fotos' : 'google photos')}`, 'images', t('qs_gphotos')],
+    [`#/buscar/${encodeURIComponent(t('qs_video_q'))}`, 'clapperboard', t('qs_video')],
+  ];
+  const stats = [[2341, t('st_projects')], [TASKS.length, t('st_topics')], [weekStars, t('st_week')], [0, t('st_ads')]];
+  return `<main>
+    <section class="relative isolate overflow-hidden">
+      <div aria-hidden="true" class="bg-grid pointer-events-none absolute inset-0 -z-10"></div>
+      <div aria-hidden="true" class="glow pointer-events-none absolute top-[-16rem] left-1/2 -z-10 h-[36rem] w-[64rem] -translate-x-1/2 rounded-full"></div>
+      <div class="mx-auto max-w-6xl px-4 pt-14 pb-12 text-center md:px-6 md:pt-24">
+        <a href="#/top" class="rise inline-flex items-center gap-2 rounded-full bg-card/60 px-3 py-1 font-mono text-xs text-muted ring-1 ring-line backdrop-blur transition hover:text-ink">
+          <span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-60"></span><span class="relative inline-flex size-2 rounded-full bg-ok"></span></span>
+          ${t('live_badge')}<i data-lucide="arrow-right" class="size-3.5" aria-hidden="true"></i>
+        </a>
+        <h1 class="rise mx-auto mt-6 max-w-4xl text-[2.6rem] leading-[1.03] font-semibold tracking-tighter text-balance md:text-7xl" style="animation-delay:.08s">${t('hero_a')}<br><span class="bg-linear-to-r from-brand via-cyan to-brand bg-clip-text text-transparent">${t('hero_b')}</span></h1>
+        <p class="rise mx-auto mt-5 max-w-xl text-lg text-pretty text-muted" style="animation-delay:.16s">${t('hero_sub')}</p>
+        <div class="rise relative z-20 mx-auto mt-8 max-w-2xl" style="animation-delay:.24s">${searchBox('hero', true)}</div>
+        <div class="rise mt-4 flex flex-wrap justify-center gap-2" style="animation-delay:.32s">${quick.map(([href, icon, label]) => `<a href="${href}" class="inline-flex items-center gap-1.5 rounded-full bg-card/60 px-3 py-1.5 text-sm text-muted ring-1 ring-line backdrop-blur transition hover:text-ink hover:ring-brand/40"><i data-lucide="${icon}" class="size-3.5" aria-hidden="true"></i>${esc(label)}</a>`).join('')}</div>
+        <dl class="rise mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line md:grid-cols-4" style="animation-delay:.4s">
+          ${stats.map(([n, label]) => `<div class="flex flex-col-reverse bg-bg/85 px-4 py-4 backdrop-blur"><dt class="mt-1 text-xs text-muted">${esc(label)}</dt><dd class="font-mono text-2xl font-semibold tracking-tight md:text-3xl" data-count="${n}">${fmt(n)}</dd></div>`).join('')}
+        </dl>
+      </div>
+    </section>
+    ${ticker(byWeek.slice(0, 10))}
+    <section class="reveal mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
+      ${sectionHead(t('eb_explore'), t('explore_home_title'), arrowLink('#/explorar', t('see_catalog')))}
+      ${tasksBento()}
+    </section>
+    <section class="reveal mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pb-24">
+      ${sectionHead(t('eb_trending'), t('top_week'), arrowLink('#/top', t('see_all')))}
+      ${trendingBento(byWeek.slice(0, 5))}
+    </section>
+    ${agentsSection()}
+    ${newsletter()}
+  </main>`;
+}
+
+// ---------------------------------------------------------------------------
+// Listados con filtros
+// ---------------------------------------------------------------------------
+const backLink = (href = '#/', label = t('home')) =>
+  `<a href="${href}" class="inline-flex items-center gap-1 font-mono text-xs text-muted transition hover:text-ink"><i data-lucide="arrow-left" class="size-3.5" aria-hidden="true"></i>${esc(label)}</a>`;
+
+const pageTitle = (icon, hue, title, sub, eb = '') => `<div class="mt-5 flex items-center gap-4">
+  <span class="tint grid size-14 shrink-0 place-items-center rounded-2xl ring-1 ring-line" style="--h:${hue}"><i data-lucide="${icon}" class="size-7" aria-hidden="true"></i></span>
+  <div class="min-w-0">
+    ${eb ? eyebrow(eb) : ''}
+    <h1 class="text-3xl font-semibold tracking-tight text-balance md:text-4xl">${esc(title)}</h1>
+    <p class="mt-1 font-mono text-xs text-muted md:text-sm">${sub}</p>
+  </div>
+</div>`;
+
+const pageHero = inner => `<div class="relative isolate">
+  <div aria-hidden="true" class="bg-grid pointer-events-none absolute inset-x-0 -top-24 -z-10 h-80 opacity-70"></div>
+  ${inner}
+</div>`;
+
+const emptyState = (icon, text, extra = '') =>
+  `<div class="rounded-2xl bg-card p-10 text-center ring-1 ring-line"><i data-lucide="${icon}" class="mx-auto size-8 text-muted" aria-hidden="true"></i><p class="mt-3 font-medium">${esc(text)}</p>${extra}</div>`;
+
+function quickChips(f) {
+  const items = [
+    ['myos', 'monitor', t('q_myos')(OS[state.os][state.lang]), f.so.length === 1 && f.so[0] === state.os],
+    ['open', 'lock-open', t('f_open'), f.lic.length === 1 && f.lic[0] === 'open'],
+    ['es', 'languages', t('f_es'), f.es],
+    ['easy', 'mouse-pointer-click', t('f_easy'), f.inst.length === 1 && f.inst[0] === 'easy'],
+  ];
+  return items.map(([k, ic, label, on]) => `<button type="button" data-fquick="${k}" aria-pressed="${on}" class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium ring-1 transition ${on ? 'bg-brand text-on-brand ring-brand shadow-[0_0_24px_-8px_var(--color-brand)]' : 'bg-card text-ink ring-line hover:ring-brand/40'}"><i data-lucide="${on ? 'check' : ic}" class="size-4" aria-hidden="true"></i>${esc(label)}</button>`).join('');
+}
+
+function activeChips(f) {
+  const chips = [];
+  GROUPS.forEach(g => {
+    const opts = g.opts();
+    f[g.k].forEach(v => { const o = opts.find(([x]) => x === v); if (o) chips.push([`${g.k}:${v}`, o[1]]); });
+  });
+  if (f.es) chips.push(['es:1', t('o_es')]);
+  if (f.min) chips.push([`min:${f.min}`, t('o_min')(f.min)]);
+  if (!chips.length) return '';
+  return `<div class="no-scrollbar mt-2.5 flex items-center gap-2 overflow-x-auto">${chips.map(([key, label]) => `<button type="button" data-fremove="${key}" class="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand ring-1 ring-brand/20 transition hover:bg-brand/20" aria-label="${esc(t('remove_filter')(label))}">${esc(label)}<i data-lucide="x" class="size-3.5" aria-hidden="true"></i></button>`).join('')}<button type="button" data-action="clear-filters" class="shrink-0 font-mono text-xs text-muted underline-offset-2 hover:text-ink hover:underline">${t('f_clear_all')}</button></div>`;
+}
+
+function optRow(attr, label, n, on, kind) {
+  const disabled = n === 0 && !on;
+  const mark = kind === 'radio'
+    ? `<span class="grid size-4 shrink-0 place-items-center rounded-full ring-1 ${on ? 'ring-brand' : 'ring-line'}">${on ? '<span class="size-2 rounded-full bg-brand shadow-[0_0_8px_var(--color-brand)]"></span>' : ''}</span>`
+    : `<span class="grid size-4 shrink-0 place-items-center rounded ${on ? 'bg-brand text-on-brand shadow-[0_0_10px_-2px_var(--color-brand)]' : 'bg-bg ring-1 ring-line'}">${on ? '<i data-lucide="check" class="size-3" aria-hidden="true"></i>' : ''}</span>`;
+  return `<li><button type="button" ${attr} ${disabled ? 'disabled' : ''} aria-pressed="${on}" class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm transition ${disabled ? 'cursor-not-allowed opacity-35' : 'hover:bg-line/60'} ${on ? 'font-medium text-ink' : 'text-ink/90'}">${mark}<span class="flex-1">${esc(label)}</span>${n === null ? '' : `<span class="font-mono text-xs text-muted">${n}</span>`}</button></li>`;
+}
+
+// Grupos de filtros con el número de resultados de cada opción (se cuenta respetando los demás filtros)
+function filterGroups(items, f, showTema, sorts = null) {
+  const sec = (title, body) => `<section class="border-b border-line py-4 first:pt-1 last:border-0"><h3 class="mb-2 px-2 font-mono text-xs tracking-widest text-muted uppercase">${title}</h3><ul class="space-y-0.5">${body}</ul></section>`;
+  let html = '';
+  if (sorts) html += sec(t('sort_label'), sorts.map(k => optRow(`data-fsort="${k}"`, t(`sort_${k}`), null, f.orden === k, 'radio')).join(''));
+  GROUPS.filter(g => showTema || g.k !== 'tema').forEach(g => {
+    html += sec(t(g.label), g.opts().map(([v, label]) => optRow(`data-fopt="${g.k}:${v}"`, label, items.filter(p => matches(p, f, g.k) && g.test(p, v)).length, f[g.k].includes(v), 'check')).join(''));
+  });
+  html += sec(t('g_lang'), optRow('data-fopt="es:1"', t('o_es'), items.filter(p => matches(p, f, 'es') && p.es).length, f.es, 'check'));
+  html += sec(t('g_min'), MIN_STARS.map(v => optRow(`data-fone="min:${v}"`, v ? t('o_min')(v) : t('o_any'), items.filter(p => matches(p, f, 'min') && p.stars >= v).length, f.min === v, 'radio')).join(''));
+  return html;
+}
+
+function listPage({ title, icon, hue = 245, items, rankTask = '', sub = '', showTema = false, defaultSort = 'puntuacion', back = null, eb = '' }) {
+  state.listCtx = { items, showTema, defaultSort };
+  const f = readFilters(parseHash().query, defaultSort);
+  const shown = items.filter(p => matches(p, f)).sort(SORTS[f.orden]);
+  const n = activeCount(f);
+  const sorts = sortKeys(state.listCtx);
+  let body;
+  if (!items.length) body = emptyState('search-x', t('no_results'));
+  else if (!shown.length) body = emptyState('search-x', t('none'), `<button type="button" data-action="clear-filters" class="mt-4 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-on-brand">${t('f_clear_all')}</button>`);
+  // Al llegar a la página, las tarjetas entran escalonadas; al filtrar, se deslizan a su sitio (vt)
+  else body = `<div class="${state.entering ? 'stagger ' : ''}grid gap-3 sm:grid-cols-2 xl:grid-cols-3">${shown.map(p => card(p, { rank: rankTask ? rankIn(p, rankTask) : 0, week: f.orden === 'auge', vt: !state.entering })).join('')}</div>`;
+  return `<main class="mx-auto max-w-6xl px-4 pt-6 pb-10 md:px-6">
+    ${pageHero(`${back || backLink()}${pageTitle(icon, hue, title, `${t('programs')(shown.length)} · ${sub || t(`sortd_${f.orden}`)}`, eb)}`)}
+    <div class="sticky top-14 z-30 -mx-4 mt-6 border-b border-line bg-bg/80 px-4 py-3 backdrop-blur-xl md:-mx-6 md:px-6">
+      <div class="flex items-center gap-2">
+        <div class="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto" role="group" aria-label="${t('f_title')}">${quickChips(f)}</div>
+        <button type="button" data-action="open-filters" class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-sm font-medium ring-1 ring-line lg:hidden"><i data-lucide="sliders-horizontal" class="size-4" aria-hidden="true"></i>${t('f_title')}${n ? `<span class="grid size-5 place-items-center rounded-full bg-brand font-mono text-[11px] text-on-brand">${n}</span>` : ''}</button>
+        <label class="hidden shrink-0 items-center gap-2 font-mono text-xs text-muted sm:flex">${t('sort_label')}
+          <select data-sort class="rounded-full bg-card px-3 py-2 font-sans text-sm font-medium text-ink ring-1 ring-line outline-none focus:ring-2 focus:ring-brand">${sorts.map(k => `<option value="${k}" ${f.orden === k ? 'selected' : ''}>${t(`sort_${k}`)}</option>`).join('')}</select>
+        </label>
+      </div>
+      ${activeChips(f)}
+    </div>
+    <div class="mt-6 lg:grid lg:grid-cols-[230px_1fr] lg:gap-8">
+      <aside class="hidden lg:block" aria-label="${t('f_title')}">${filterGroups(items, f, showTema)}</aside>
+      <div>${body}</div>
+    </div>
+  </main>`;
+}
+
+const taskPage = task => listPage({ title: task[state.lang], icon: task.icon, hue: task.hue, items: inTask(task.id), rankTask: task.id, eb: t('eb_topic') });
+const topPage = () => listPage({ title: t('top_week'), icon: 'trending-up', items: [...P], showTema: true, defaultSort: 'auge', eb: t('eb_top') });
+const explorePage = () => listPage({ title: t('explore_title'), icon: 'layout-grid', items: [...P], showTema: true, eb: t('eb_catalog') });
+
+function altPage(key) {
+  const s = SYN[key];
+  if (!s) return notFound();
+  return listPage({ title: t('alts_to')(s.label), icon: 'repeat', items: s.ids.map(id => BY_ID[id]), back: backLink('#/alternativas', t('alts_title')), eb: t('eb_alts') });
+}
+
+function altsIndex() {
+  const L = state.lang;
+  const entries = Object.entries(SYN).filter(([, s]) => !s.lang || s.lang === L);
+  return `<main class="mx-auto max-w-6xl px-4 pt-6 pb-10 md:px-6">
+    ${pageHero(`${backLink()}${pageTitle('repeat', 245, t('alts_title'), t('alts_sub'), t('eb_alts'))}`)}
+    <div class="${state.entering ? 'stagger ' : ''}mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      ${entries.map(([key, s]) => `<a href="#/alternativas-a/${encodeURIComponent(key)}" class="spot group flex flex-col gap-3 rounded-2xl bg-card p-4 ring-1 ring-line transition duration-300 ease-out-expo hover:ring-brand/40 motion-safe:hover:-translate-y-0.5">
+        <span class="font-mono text-xs text-muted">${t('alt_to_label')}</span>
+        <span class="-mt-2 text-xl font-semibold tracking-tight">${esc(s.label)}</span>
+        <span class="flex items-center gap-2">
+          <span class="flex -space-x-2">${s.ids.map(id => appIcon(BY_ID[id], 'size-8 rounded-lg ring-2 ring-card', 'size-4')).join('')}</span>
+          <span class="font-mono text-xs text-muted">${t('alts_count')(s.ids.length)}</span>
+          <i data-lucide="arrow-right" class="ml-auto size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-brand" aria-hidden="true"></i>
+        </span>
+      </a>`).join('')}
+    </div>
+  </main>`;
+}
+
+function alertsPage() {
+  const rea = BY_ID['morluto/rea'];
+  return `<main class="mx-auto max-w-3xl px-4 pt-6 pb-10 md:px-6">
+    ${pageHero(`${backLink()}${pageTitle('shield-alert', 27, t('alerts_title'), t('alerts_sub'), t('eb_alerts'))}`)}
+    <article class="relative isolate mt-8 overflow-hidden rounded-2xl bg-card p-5 ring-1 ring-bad/30 md:p-6">
+      <div aria-hidden="true" class="pointer-events-none absolute -top-24 -right-24 -z-10 size-64 rounded-full bg-bad/20 blur-3xl"></div>
+      <div class="flex flex-wrap items-center gap-2">${chip('bad', 'triangle-alert', t('alert_active'))}<span class="font-mono text-xs text-muted">${t('alert_date')}</span></div>
+      <h2 class="mt-3 text-xl font-semibold tracking-tight">${t('alert_rea_title')}</h2>
+      <p class="mt-2 leading-relaxed text-pretty text-muted">${t('alert_rea_text')}</p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-xl bg-bad-soft p-4 ring-1 ring-bad/20"><p class="flex items-center gap-1.5 text-sm font-semibold text-bad"><i data-lucide="circle-x" class="size-4" aria-hidden="true"></i>${t('fake_repo')}</p><p class="mt-1 font-mono text-xs text-ink line-through">github.com/rea-githu/REA</p></div>
+        <div class="rounded-xl bg-ok-soft p-4 ring-1 ring-ok/20"><p class="flex items-center gap-1.5 text-sm font-semibold text-ok"><i data-lucide="circle-check" class="size-4" aria-hidden="true"></i>${t('official_repo')}</p><p class="mt-1 font-mono text-xs text-ink">github.com/morluto/rea</p></div>
+      </div>
+      <p class="mt-4 text-sm"><span class="font-semibold">${t('alert_what')}:</span> <span class="text-muted">${t('alert_do')}</span></p>
+      <a href="#/morluto/rea" class="mt-5 inline-flex items-center gap-2 rounded-full bg-brand py-2 pr-4 pl-2 text-sm font-semibold text-on-brand transition hover:brightness-110">${appIcon(rea, 'size-6 rounded-full', 'size-3.5')}${t('see_project')}</a>
+    </article>
+    <section class="mt-6 rounded-2xl bg-card p-5 ring-1 ring-line md:p-6">
+      <h2 class="flex items-center gap-2 font-semibold"><i data-lucide="radar" class="size-5 text-brand" aria-hidden="true"></i>${t('alerts_how_title')}</h2>
+      <p class="mt-2 leading-relaxed text-pretty text-muted">${t('alerts_how')}</p>
+    </section>
+  </main>`;
+}
+
+// ---------------------------------------------------------------------------
+// Buscador: tareas, «alternativa a X» y proyectos
+// ---------------------------------------------------------------------------
+// Mientras se escribe (prefix) vale que la palabra esté a medias; en resultados, solo palabras enteras.
+function taskHits(nq, prefix = true) {
+  const words = nq.split(/\s+/).filter(Boolean);
+  return TASKS.filter(task => {
+    const kws = norm(`${task.es} ${task.en} ${task.kw}`).split(/\s+/);
+    return words.some(w => kws.some(k => k === w || (prefix && w.length >= 3 && k.startsWith(w))));
+  });
+}
+function synHits(nq) {
+  const seen = new Set();
+  return Object.entries(SYN)
+    .filter(([k]) => nq.includes(k) || (nq.length >= 3 && k.startsWith(nq)))
+    .map(([k, v]) => ({ key: k, ...v }))
+    .filter(s => { const key = s.ids.join(); if (seen.has(key)) return false; seen.add(key); return true; });
+}
+// Relevancia: palabra entera (o su plural) = 2, palabra que empieza por la misma raíz = 1,
+// nombre que empieza igual = 3, y +3 si es alternativa directa a lo buscado («photoshop» → GIMP).
+// Si hay coincidencias fuertes, se descartan las flojas. Busca primero en el idioma activo.
+function searchProjects(nq, langs = [state.lang]) {
+  const words = nq.split(/\s+/).filter(w => w.length >= 3);
+  if (!words.length) return [];
+  const boosted = new Set(synHits(nq).filter(s => nq.includes(s.key)).flatMap(s => s.ids));
+  const scored = P.map(p => {
+    const hayWords = norm(`${p.name} ${langs.map(l => `${p.tag[l]} ${p.about[l]}`).join(' ')}`).split(/[^a-z0-9]+/);
+    let score = 0;
+    for (const w of words) {
+      if (hayWords.some(x => x === w || x === `${w}s` || x === `${w}es`)) score += 2;
+      else if (hayWords.some(x => x.startsWith(w.slice(0, 4)))) score += 1;
+    }
+    if (norm(p.name).startsWith(nq)) score += 3;
+    if (boosted.has(p.id)) score += 3;
+    return [p, score];
+  }).filter(([, score]) => score > 0);
+  if (!scored.length && langs.length === 1) return searchProjects(nq, ['es', 'en']);
+  const best = Math.max(0, ...scored.map(([, score]) => score));
+  return scored
+    .filter(([, score]) => best < 3 || score >= 2)
+    .sort((a, b) => b[1] - a[1] || b[0].score - a[0].score)
+    .map(([p]) => p);
+}
+
+function results(q) {
+  const nq = norm(q);
+  const syn = synHits(nq).find(s => nq.includes(s.key));
+  if (syn) return altPage(syn.key);
+  const seen = new Set();
+  const items = [];
+  const add = p => { if (!seen.has(p.id)) { seen.add(p.id); items.push(p); } };
+  searchProjects(nq).forEach(add);
+  taskHits(nq, false).forEach(task => inTask(task.id).forEach(add));
+  return listPage({ title: t('results_for')(q), icon: 'search', items, showTema: true, defaultSort: 'relevancia', eb: t('eb_search') });
+}
+
+// ---------------------------------------------------------------------------
+// Ficha de proyecto
+// ---------------------------------------------------------------------------
+function otherOS(p) {
+  const L = state.lang;
+  const others = p.os.filter(o => o !== state.os);
+  if (!others.length) return '';
+  return `<p class="mt-1">${t('other_os')}: ${others.map(o => USER_OS.includes(o)
+    ? `<button type="button" data-action="set-os" data-os="${o}" class="font-medium text-brand hover:underline">${OS[o][L]}</button>`
+    : `<span>${OS[o][L]}</span>`).join(' · ')}</p>`;
+}
+
+function seal(tone, icon, title, sub) {
+  return `<div class="flex items-center gap-3 rounded-2xl p-4 ring-1 ring-line ${TONES[tone]}"><i data-lucide="${icon}" class="size-6 shrink-0" aria-hidden="true"></i><div class="min-w-0"><p class="font-semibold leading-tight">${esc(title)}</p><p class="mt-0.5 text-xs opacity-90">${esc(sub)}</p></div></div>`;
+}
+function seals(p) {
+  const s1 = seal('ok', 'shield-check', t('seal_official'), t('seal_official_sub'));
+  const st = {
+    active: ['ok', 'activity', t('st_active')],
+    slow: ['warn', 'hourglass', t('st_slow')],
+    dead: ['bad', 'circle-off', t('st_dead')],
+    done: ['done', 'circle-check-big', t('st_done')],
+  }[p.status];
+  const s2 = seal(st[0], st[1], st[2], t('version_ago')(p.days));
+  const ins = {
+    easy: ['ok', 'mouse-pointer-click', t('in_easy'), t('in_easy_sub')],
+    steps: ['warn', 'wrench', t('in_steps'), t('in_steps_sub')],
+    dev: ['done', 'terminal', t('in_dev'), t('in_dev_sub')],
+  }[p.install];
+  return s1 + s2 + seal(ins[0], ins[1], ins[2], ins[3]);
+}
+
+function fakesBox(p) {
+  return `<div class="relative isolate mt-4 overflow-hidden rounded-2xl bg-bad-soft p-5 text-bad ring-1 ring-bad/25">
+    <div aria-hidden="true" class="pointer-events-none absolute -top-16 -right-16 -z-10 size-48 rounded-full bg-bad/20 blur-3xl"></div>
+    <p class="flex items-center gap-2 font-semibold"><i data-lucide="triangle-alert" class="size-5" aria-hidden="true"></i>${t('careful')}</p>
+    <p class="mt-2 text-sm text-ink">${t('fake_text')}</p>
+    <p class="mt-2 font-mono text-xs text-ink"><span class="line-through">${esc(p.fake)}</span> · ${t('fake_label')}</p>
+  </div>`;
+}
+
+function sparkData(p) {
+  if (p.spark) return p.spark;
+  const r = rng(`${p.id}:spark`);
+  const out = [];
+  for (let i = 0; i < 11; i++) out.push(Math.round(p.week * (0.55 + 0.035 * i + r() * 0.3)));
+  out.push(p.week);
+  return out;
+}
+function spark(arr, mini = false) {
+  const w = 300, h = 60, max = Math.max(...arr), min = Math.min(...arr);
+  const pts = arr.map((v, i) => [i * (w / (arr.length - 1)), h - 6 - ((v - min) / (max - min || 1)) * (h - 12)]);
+  const d = 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L');
+  const [lx, ly] = pts[pts.length - 1];
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="${mini ? 'h-12' : 'mt-2 h-20'} w-full overflow-visible" role="img" aria-label="${esc(t('weeks12'))}">
+    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--color-brand);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--color-brand);stop-opacity:0"/></linearGradient></defs>
+    <path d="${d} L${w} ${h} L0 ${h} Z" fill="url(#sg)"/>
+    <path d="${d}" fill="none" style="stroke:var(--color-brand);filter:drop-shadow(0 0 6px color-mix(in oklch, var(--color-brand) 70%, transparent))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" class="spark-draw"/>
+    <circle cx="${lx}" cy="${ly}" r="3.5" style="fill:var(--color-brand)" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+function licText(p) {
+  if (p.lic === 'open') return t('lic_open')(p.licName);
+  if (p.lic === 'limited') return t('lic_limited')(p.licName);
+  return t('lic_none');
+}
+const stepsOf = p => (p.stepsText ? p.stepsText[state.lang] : t(`steps_${p.install}`));
+
+function details(p) {
+  const item = (icon, title, body, open = false) =>
+    `<details ${open ? 'open' : ''}><summary class="flex cursor-pointer items-center gap-3 px-5 py-4 font-medium transition hover:bg-line/40"><i data-lucide="${icon}" class="size-5 text-brand" aria-hidden="true"></i><span class="flex-1">${title}</span><i data-lucide="chevron-right" class="chev size-4 text-muted transition" aria-hidden="true"></i></summary><div class="px-5 pb-5">${body}</div></details>`;
+  const numbers = `<div class="rounded-xl bg-bg/60 p-4 ring-1 ring-line"><p class="font-mono text-xs text-muted">${t('weeks12')}</p>${spark(sparkData(p))}</div>
+    <p class="mt-3 text-xs text-muted">★ ${t('stars_hint')}</p>`;
+  const score = `<div class="flex items-end gap-2"><span class="bg-linear-to-r from-brand to-cyan bg-clip-text font-mono text-5xl font-semibold text-transparent">${p.score}</span><span class="pb-1.5 font-mono text-muted">/100</span></div>
+    <div class="mt-4 space-y-3">${[t('sc_pop'), t('sc_mom'), t('sc_health'), t('sc_use')].map((lab, i) => `<div><div class="flex justify-between text-sm"><span>${lab}</span><span class="font-mono text-muted">${p.sc[i]}</span></div><div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line"><div class="h-full rounded-full bg-linear-to-r from-brand to-cyan shadow-[0_0_10px_var(--color-brand)]" style="width:${p.sc[i]}%"></div></div></div>`).join('')}</div>
+    <p class="mt-4 text-sm text-muted">${t('score_note')}</p>`;
+  const faqHtml = `<dl class="space-y-4">${t('faq')(p, OS[state.os][state.lang], p.os.includes(state.os)).map(([q, a]) => `<div><dt class="font-medium">${esc(q)}</dt><dd class="mt-1 text-muted">${esc(a)}</dd></div>`).join('')}</dl>`;
+  const install = `<ol class="list-decimal space-y-2 pl-5 marker:font-mono marker:text-brand">${stepsOf(p).map(s => `<li>${esc(s)}</li>`).join('')}</ol>${p.cmd ? `<div class="mt-4 flex items-center gap-2 rounded-xl bg-term px-4 py-3 font-mono text-sm text-term-ink ring-1 ring-white/10"><span class="text-[oklch(0.8_0.15_150)]">$</span><span class="no-scrollbar flex-1 overflow-x-auto whitespace-nowrap">${esc(p.cmd)}</span><button type="button" data-action="copy" data-text="${esc(p.cmd)}" class="grid size-8 shrink-0 place-items-center rounded-lg transition hover:bg-white/10" aria-label="${t('copy')}"><i data-lucide="copy" class="size-4" aria-hidden="true"></i></button></div>` : ''}`;
+  return item('chart-column', t('d_numbers'), numbers, true)
+    + item('gauge', t('d_score'), score)
+    + item('scale', t('d_license'), `<p class="text-muted">${esc(licText(p))}</p>`)
+    + item('circle-help', t('d_faq'), faqHtml)
+    + `<div id="install">${item('list-ordered', t('d_install'), install)}</div>`;
+}
+
+function cta(p) {
+  const osName = OS[state.os][state.lang];
+  if (p.install === 'dev') return { kind: 'github', icon: 'external-link', label: t('see_github'), sub: `github.com/${p.id}` };
+  if (p.os.includes(state.os)) return { kind: 'download', icon: 'download', label: t('download_for')(osName), sub: t('from_official')(p.site) };
+  if (p.os.includes('server')) return { kind: 'install', icon: 'server', label: t('how_install'), sub: t('on_server') };
+  return { kind: 'install', icon: 'info', label: t('how_install'), sub: t('not_on')(osName) };
+}
+
+function project(p) {
+  const L = state.lang;
+  const task = TASKS.find(x => x.id === p.tasks[0]);
+  const a = cta(p);
+  const alts = (p.alts || []).map(id => BY_ID[id]).filter(Boolean);
+  const stats = [
+    [fmt(p.stars), `★ ${t('stars_total')}`],
+    [`+${fmt(p.week)}`, t('this_week')],
+    [ver(p.version), t('days_ago')(p.days)],
+    [fmt(p.contributors), t('contributors')],
+  ];
+  return `<main>
+    <section class="relative isolate overflow-hidden">
+      <div aria-hidden="true" class="pointer-events-none absolute top-[-14rem] left-1/2 -z-10 h-[30rem] w-[56rem] -translate-x-1/2 rounded-full blur-[110px]" style="background:radial-gradient(closest-side, ${c(0.62, 0.19, p.hue)}, transparent);opacity:.45"></div>
+      <div aria-hidden="true" class="bg-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 opacity-70"></div>
+      <div class="mx-auto max-w-3xl px-4 pt-6 md:px-6">
+        <nav class="flex flex-wrap items-center gap-1.5 font-mono text-xs text-muted" aria-label="breadcrumb">
+          <a href="#/" class="hover:text-ink">${t('home')}</a><span>/</span><a href="#/tarea/${task.id}" class="hover:text-ink">${task[L]}</a><span>/</span><span class="text-ink">${esc(p.name)}</span>
+        </nav>
+        <div class="mt-6 flex items-start gap-4">
+          ${appIcon(p, 'size-16 rounded-2xl md:size-20 md:rounded-3xl', 'size-8 md:size-10', true)}
+          <div class="min-w-0">
+            <h1 class="text-3xl font-semibold tracking-tight md:text-5xl">${esc(p.name)}</h1>
+            <p class="mt-1 text-lg text-pretty text-muted">${esc(p.tag[L])}</p>
+            <div class="mt-3 flex flex-wrap items-center gap-2">${chip('brand', 'trophy', t('rank_in')(rankIn(p, task.id), task[L]))}${p.fakes ? chip('bad', 'triangle-alert', t('chip_fakes')) : ''}${p.lic === 'limited' ? chip('warn', 'lock-keyhole', t('lic_limited_short')) : ''}</div>
+          </div>
+        </div>
+        <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button type="button" data-action="cta" data-id="${esc(p.id)}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 text-base font-semibold text-on-brand shadow-[0_10px_40px_-10px_var(--color-brand)] transition hover:brightness-110 active:scale-[.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"><i data-lucide="${a.icon}" class="size-5" aria-hidden="true"></i>${esc(a.label)}</button>
+          ${a.kind !== 'github' ? `<button type="button" data-action="gh" data-id="${esc(p.id)}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-card/70 px-5 py-4 text-sm font-semibold ring-1 ring-line backdrop-blur transition hover:ring-brand/40"><i data-lucide="external-link" class="size-4" aria-hidden="true"></i>GitHub</button>` : ''}
+        </div>
+        <div class="mt-3 text-sm text-muted">
+          <p class="flex items-center gap-1.5"><i data-lucide="badge-check" class="size-4 text-ok" aria-hidden="true"></i>${esc(a.sub)}</p>
+          ${otherOS(p)}
+        </div>
+        <dl class="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line sm:grid-cols-4">
+          ${stats.map(([value, label]) => `<div class="flex flex-col-reverse bg-bg/85 px-4 py-3 backdrop-blur"><dt class="mt-0.5 truncate text-xs text-muted">${esc(label)}</dt><dd class="truncate font-mono text-lg font-semibold tracking-tight">${esc(value)}</dd></div>`).join('')}
+        </dl>
+      </div>
+    </section>
+    <div class="mx-auto max-w-3xl px-4 pb-10 md:px-6">
+      <div class="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 md:mx-0 md:px-0" aria-label="${t('shots')}">
+        ${[0, 1, 2].map(v => `<div class="w-[88%] shrink-0 snap-center md:w-[82%]">${shot(p, v)}</div>`).join('')}
+      </div>
+      <div class="mt-8 grid gap-3 sm:grid-cols-3">${seals(p)}</div>
+      ${p.fakes ? fakesBox(p) : ''}
+      <section class="mt-12">
+        ${eyebrow(`// ${t('what')}`)}
+        <p class="mt-3 text-xl leading-relaxed text-pretty">${esc(p.about[L])}</p>
+      </section>
+      ${alts.length ? `<section class="mt-12">
+        ${eyebrow(`// ${t('alts')}`)}
+        <div class="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-3 md:px-0">
+          ${alts.map(x => `<a href="#/${x.id}" class="spot flex w-64 shrink-0 items-center gap-3 rounded-2xl bg-card p-3 ring-1 ring-line transition hover:ring-brand/40 md:w-auto">${appIcon(x)}<span class="min-w-0"><span class="block font-semibold">${esc(x.name)}</span><span class="block truncate text-sm text-muted">${esc(x.tag[L])}</span></span></a>`).join('')}
+        </div>
+      </section>` : ''}
+      <section class="mt-12">
+        ${eyebrow(`// ${t('more')}`)}
+        <div class="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">${details(p)}</div>
+      </section>
+      <div class="mt-8 flex flex-col gap-3 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <p class="flex flex-wrap items-center gap-1.5 font-mono text-xs"><i data-lucide="link" class="size-3.5" aria-hidden="true"></i><span class="text-ink">nuestraweb.org/${esc(p.id)}</span><span>· ${t('url_note')}</span></p>
+        <button type="button" data-action="agent-view" data-id="${esc(p.id)}" class="inline-flex items-center justify-center gap-1.5 rounded-full bg-card px-3.5 py-2 font-medium text-ink ring-1 ring-line transition hover:ring-brand/40"><i data-lucide="bot" class="size-4 text-brand" aria-hidden="true"></i>${t('agent_link')}</button>
+      </div>
+    </div>
+  </main>`;
+}
+
+function notFound() {
+  return `<main class="mx-auto max-w-3xl px-4 py-24 text-center">
+    <i data-lucide="search-x" class="mx-auto size-10 text-muted" aria-hidden="true"></i>
+    <h1 class="mt-4 text-2xl font-semibold tracking-tight">${t('nf_title')}</h1>
+    <p class="mt-2 text-muted">${t('nf_sub')}</p>
+    <a href="#/" class="mt-6 inline-flex rounded-full bg-brand px-5 py-2.5 font-semibold text-on-brand">${t('home')}</a>
+  </main>`;
+}
+
+// ---------------------------------------------------------------------------
+// Ventanas: buscador, menú del móvil, filtros del móvil, vista para agentes
+// ---------------------------------------------------------------------------
+const closeBtn = () => `<button type="button" data-action="close-modal" class="grid size-9 shrink-0 place-items-center rounded-full bg-line/60 text-muted transition hover:text-ink" aria-label="${t('close')}"><i data-lucide="x" class="size-5" aria-hidden="true"></i></button>`;
+const codeBlock = (label, code, wrap = false) =>
+  `<p class="mt-5 font-mono text-xs tracking-widest text-muted uppercase">${esc(label)}</p><pre class="mt-2 overflow-x-auto rounded-xl bg-term p-4 font-mono text-[13px] leading-relaxed text-term-ink ring-1 ring-white/10 ${wrap ? 'whitespace-pre-wrap break-words' : ''}"><code>${esc(code)}</code></pre>`;
+
+function openModal(inner, labelId) {
+  state.sheetOpen = false;
+  state.drawerOpen = false;
+  $('#modal-root').innerHTML = `<div class="overlay-in fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" data-action="modal-bg">
+    <div role="dialog" aria-modal="true" aria-labelledby="${labelId}" data-kind="dialog" class="fade-in max-h-[88svh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-6 shadow-2xl ring-1 ring-line sm:rounded-3xl md:p-8">${inner}</div>
+  </div>`;
+  icons();
+  $('#modal-root [data-action="close-modal"]')?.focus();
+}
+// Cierra con una salida breve; «immediate» la quita al momento (al cambiar de página)
+function closeModal(immediate = false) {
+  const root = $('#modal-root');
+  state.sheetOpen = false;
+  state.drawerOpen = false;
+  const overlay = root.firstElementChild;
+  if (!overlay) return;
+  if (immediate || reduceMotion()) { root.innerHTML = ''; return; }
+  overlay.classList.add('is-closing');
+  overlay.style.pointerEvents = 'none';
+  setTimeout(() => { if (overlay.parentNode === root) overlay.remove(); }, 200);
+}
+
+function searchModal() {
+  openModal(`<div class="flex items-center justify-between gap-4"><h2 id="sm-title" class="text-lg font-semibold tracking-tight">${t('search')}</h2>${closeBtn()}</div><div class="mt-4 min-h-72">${searchBox('modal')}</div>`, 'sm-title');
+  setTimeout(() => $('#q-modal')?.focus(), 30);
+}
+
+function openDrawer() {
+  const L = state.lang;
+  const item = (href, icon, label, dot = false) => `<li><a href="${href}" class="flex items-center gap-3 rounded-xl px-2 py-2.5 font-medium transition hover:bg-line/60"><i data-lucide="${icon}" class="size-5 text-muted" aria-hidden="true"></i><span class="flex-1">${esc(label)}</span>${dot ? '<span class="size-2 rounded-full bg-bad" aria-hidden="true"></span>' : ''}</a></li>`;
+  $('#modal-root').innerHTML = `<div class="${state.drawerOpen ? '' : 'overlay-in'} fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm" data-action="modal-bg">
+    <nav aria-label="${t('menu')}" data-kind="drawer" class="${state.drawerOpen ? '' : 'drawer-in'} flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-card shadow-2xl ring-1 ring-line">
+      <div class="flex items-center justify-between gap-3 border-b border-line px-4 py-3">${logo()}${closeBtn()}</div>
+      <div class="px-4 pt-4">${searchBox('drawer')}</div>
+      <p class="mt-5 px-6 font-mono text-xs tracking-widest text-muted uppercase">${t('nav_explore')}</p>
+      <ul class="mt-1 px-4">${TASKS.map(task => `<li><a href="#/tarea/${task.id}" class="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-line/60">${taskIcon(task)}<span class="flex-1 font-medium">${task[L]}</span><span class="font-mono text-xs text-muted">${inTask(task.id).length}</span></a></li>`).join('')}</ul>
+      <ul class="mt-3 border-t border-line px-4 pt-3">
+        ${item('#/explorar', 'layout-grid', t('mg_all'))}
+        ${item('#/top', 'trending-up', t('nav_trending'))}
+        ${item('#/alternativas', 'repeat', t('nav_alts'))}
+        ${item('#/alertas', 'triangle-alert', t('nav_alerts'), true)}
+        <li><button type="button" data-action="agents" class="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left font-medium transition hover:bg-line/60"><i data-lucide="bot" class="size-5 text-muted" aria-hidden="true"></i>${t('nav_agents')}</button></li>
+      </ul>
+      <div class="mt-auto flex items-center justify-between gap-3 border-t border-line px-6 py-4 text-sm text-muted">
+        <button type="button" data-action="theme" data-with-label="1" class="inline-flex items-center gap-2 transition hover:text-ink"><i data-lucide="${state.theme === 'dark' ? 'sun' : 'moon'}" class="size-4" aria-hidden="true"></i>${state.theme === 'dark' ? t('theme_light') : t('theme_dark')}</button>
+        ${langToggle()}
+      </div>
+    </nav>
+  </div>`;
+  icons();
+  state.drawerOpen = true;
+}
+
+function openFilterSheet() {
+  const ctx = state.listCtx;
+  if (!ctx) return;
+  const f = currentFilters();
+  const count = ctx.items.filter(p => matches(p, f)).length;
+  const prev = $('#modal-root [data-sheet-body]');
+  const scroll = prev ? prev.scrollTop : 0;
+  const reopening = state.sheetOpen;
+  $('#modal-root').innerHTML = `<div class="${reopening ? '' : 'overlay-in'} fixed inset-0 z-[70] flex items-end bg-black/60 backdrop-blur-sm" data-action="modal-bg">
+    <div role="dialog" aria-modal="true" aria-labelledby="fs-title" data-kind="sheet" class="${reopening ? '' : 'sheet-in'} flex max-h-[88svh] w-full flex-col rounded-t-3xl bg-card shadow-2xl ring-1 ring-line">
+      <div class="flex items-center justify-between gap-4 border-b border-line px-5 py-4"><h2 id="fs-title" class="text-lg font-semibold tracking-tight">${t('f_title')}</h2>${closeBtn()}</div>
+      <div data-sheet-body class="flex-1 overflow-y-auto px-3 py-2">${filterGroups(ctx.items, f, ctx.showTema, sortKeys(ctx))}</div>
+      <div class="flex gap-2 border-t border-line p-4">
+        <button type="button" data-action="clear-filters" class="rounded-full px-4 py-3 text-sm font-medium text-muted ring-1 ring-line">${t('f_clear_all')}</button>
+        <button type="button" data-action="close-modal" class="flex-1 rounded-full bg-brand px-4 py-3 text-sm font-semibold text-on-brand shadow-[0_0_30px_-8px_var(--color-brand)]">${t('f_show')(count)}</button>
+      </div>
+    </div>
+  </div>`;
+  icons();
+  const body = $('#modal-root [data-sheet-body]');
+  if (body) body.scrollTop = scroll;
+  state.sheetOpen = true;
+}
+
+function agentMd(p) {
+  const L = state.lang, es = L === 'es';
+  const task = TASKS.find(x => x.id === p.tasks[0]);
+  const st = { active: t('st_active'), slow: t('st_slow'), dead: t('st_dead'), done: t('st_done') }[p.status];
+  const inst = { easy: t('in_easy'), steps: t('in_steps'), dev: t('in_dev') }[p.install];
+  const alts = (p.alts || []).map(id => BY_ID[id] && BY_ID[id].name).filter(Boolean);
+  const out = [
+    `# ${p.name}: ${p.tag[L]}`,
+    '',
+    `> ${es ? 'Datos a 15 de octubre de 2026' : 'Data as of October 15, 2026'}: ${fmt(p.stars)} ★ (+${fmt(p.week)} ${t('per_week')}) · ${st} · ${t('seal_official')}${p.fakes ? ` · ${t('chip_fakes')}` : ''}`,
+    '',
+    p.about[L],
+    '',
+    `- ${es ? 'Sistemas' : 'Platforms'}: ${p.os.map(o => OS[o][L]).join(', ')}`,
+    `- ${es ? 'Licencia' : 'License'}: ${licText(p)}`,
+    `- ${es ? 'Instalación' : 'Install'}: ${inst}`,
+    `- ${es ? 'Interfaz en español' : 'Spanish UI'}: ${p.es ? (es ? 'sí' : 'yes') : 'no'}`,
+    `- ${es ? 'Puntuación' : 'Score'}: ${p.score}/100 (${t('rank_in')(rankIn(p, task.id), task[L])})`,
+    `- ${es ? 'Web oficial' : 'Official site'}: https://${p.site}`,
+    `- ${es ? 'Código' : 'Code'}: https://github.com/${p.id}`,
+  ];
+  if (p.fakes) out.push(`- ${es ? 'Copia falsa conocida (no usar)' : 'Known fake copy (do not use)'}: ${p.fake}`);
+  if (alts.length) out.push(`- ${t('alts')}: ${alts.join(', ')}`);
+  return out.join('\n');
+}
+function jsonLd(p) {
+  const systems = p.os.filter(o => o !== 'server' && o !== 'web').map(o => OS[o].en).join(', ');
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: p.name,
+    description: p.tag[state.lang],
+    operatingSystem: systems || 'Web',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    softwareVersion: p.version,
+    license: p.licName,
+    url: `https://${p.site}`,
+    sameAs: `https://github.com/${p.id}`,
+    dateModified: '2026-10-15',
+  }, null, 2);
+}
+function agentView(p) {
+  if (!p) return;
+  openModal(`<div class="flex items-start justify-between gap-4"><div>${eyebrow(t('eb_agents'))}<h2 id="av-title" class="mt-2 text-xl font-semibold tracking-tight">${t('agent_title')}</h2><p class="mt-1 text-muted">${t('agent_sub')}</p></div>${closeBtn()}</div>
+    ${codeBlock(t('md'), agentMd(p), true)}
+    ${codeBlock(t('jsonld'), jsonLd(p))}`, 'av-title');
+}
+function agentsModal() {
+  const cfg = '{\n  "mcpServers": {\n    "nuestraweb": { "url": "https://nuestraweb.org/mcp" }\n  }\n}';
+  const answer = JSON.stringify(['KDE/kdenlive', 'mltframework/shotcut'].map(id => BY_ID[id]).map(p => ({
+    name: p.name,
+    score: p.score,
+    verified: p.official,
+    official_download: `https://${p.site}`,
+    page: `https://nuestraweb.org/${p.id}`,
+  })), null, 2);
+  openModal(`<div class="flex items-start justify-between gap-4"><div>${eyebrow(t('eb_agents'))}<h2 id="ag-title" class="mt-2 text-xl font-semibold tracking-tight">${t('agents_title')}</h2><p class="mt-1 text-muted">${t('agents_sub')}</p></div>${closeBtn()}</div>
+    ${codeBlock(t('agents_config'), cfg)}
+    ${codeBlock(t('agents_ask'), t('agents_query'))}
+    ${codeBlock(t('agents_answer'), answer)}`, 'ag-title');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = $('#toast');
+  el.innerHTML = `<div class="max-w-md rounded-2xl bg-term px-4 py-2.5 text-center text-sm text-term-ink shadow-lg ring-1 ring-white/10">${esc(msg)}</div>`;
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(0)';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; }, 2800);
+}
+
+function ctaClick(p) {
+  if (!p) return;
+  const a = cta(p);
+  if (a.kind === 'download') toast(t('toast_download')(p.site));
+  else if (a.kind === 'github') toast(t('toast_github')(p.id));
+  else {
+    const d = $('#install details');
+    if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }
+}
+
+function setOS(os) {
+  state.os = os;
+  store.set('aop-os', os);
+  render();
+  toast(t('toast_os')(OS[os][state.lang]));
+}
+
+function setTheme(theme) {
+  state.theme = theme;
+  store.set('aop-theme', theme);
+  document.documentElement.dataset.theme = theme;
+}
+// Actualiza solo los botones de tema (cabecera y menú del móvil)
+function syncThemeButtons() {
+  const icon = state.theme === 'dark' ? 'sun' : 'moon';
+  const label = state.theme === 'dark' ? t('theme_light') : t('theme_dark');
+  document.querySelectorAll('[data-action="theme"]').forEach(btn => {
+    if (btn.dataset.withLabel) btn.innerHTML = `<i data-lucide="${icon}" class="size-4" aria-hidden="true"></i>${esc(label)}`;
+    else { btn.innerHTML = `<i data-lucide="${icon}" class="size-[18px]" aria-hidden="true"></i>`; btn.setAttribute('aria-label', label); }
+  });
+  icons();
+}
+
+function copyText(text) {
+  const done = () => toast(t('copied'));
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+}
+
+// Cifras de la portada que cuentan hacia arriba (solo la primera vez)
+function countUp() {
+  const els = document.querySelectorAll('[data-count]');
+  if (!els.length || state.counted) return;
+  state.counted = true;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const start = performance.now(), dur = 1400;
+  const ease = x => 1 - Math.pow(1 - x, 4);
+  const step = now => {
+    const k = Math.min(1, (now - start) / dur);
+    els.forEach(el => { el.textContent = fmt(Math.round(Number(el.dataset.count) * ease(k))); });
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ---------------------------------------------------------------------------
+// Sugerencias del buscador
+// ---------------------------------------------------------------------------
+function suggestions(q) {
+  const nq = norm(q);
+  if (nq.length < 2) return [];
+  const out = [];
+  synHits(nq).filter(s => !s.lang || s.lang === state.lang).slice(0, 2).forEach(s => out.push({ kind: 'alt', s }));
+  taskHits(nq).slice(0, 2).forEach(task => out.push({ kind: 'task', task }));
+  searchProjects(nq).slice(0, 4).forEach(p => out.push({ kind: 'p', p }));
+  return out.slice(0, 7);
+}
+const suggestItem = (href, iconHtml, title, sub) =>
+  `<li><a href="${href}" class="flex items-center gap-3 px-4 py-2.5 transition hover:bg-line/60 focus-visible:bg-line/60 focus-visible:outline-none">${iconHtml}<span class="min-w-0"><span class="block truncate font-medium">${esc(title)}</span><span class="block truncate text-sm text-muted">${esc(sub)}</span></span></a></li>`;
+
+function renderSuggest(id, q) {
+  const box = document.querySelector(`[data-suggest="${id}"]`);
+  if (!box) return;
+  const items = suggestions(q);
+  if (!items.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const L = state.lang;
+  box.innerHTML = `<ul class="py-2">${items.map(it => {
+    if (it.kind === 'alt') return suggestItem(`#/alternativas-a/${encodeURIComponent(it.s.key)}`, `<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><i data-lucide="repeat" class="size-4" aria-hidden="true"></i></span>`, t('alts_to')(it.s.label), t('programs')(it.s.ids.length));
+    if (it.kind === 'task') return suggestItem(`#/tarea/${it.task.id}`, taskIcon(it.task), it.task[L], t('programs')(inTask(it.task.id).length));
+    return suggestItem(`#/${it.p.id}`, appIcon(it.p, 'size-9 rounded-xl', 'size-4'), it.p.name, it.p.tag[L]);
+  }).join('')}</ul>`;
+  box.classList.remove('hidden');
+  icons();
+}
+function hideSuggest() {
+  document.querySelectorAll('[data-suggest]').forEach(b => b.classList.add('hidden'));
+}
+function go(q) {
+  const nq = norm(q);
+  const task = TASKS.find(x => norm(x.es) === nq || norm(x.en) === nq);
+  closeModal();
+  const target = task ? `#/tarea/${task.id}` : `#/buscar/${encodeURIComponent(q)}`;
+  if (location.hash === target) render(); else location.hash = target;
+}
+
+// ---------------------------------------------------------------------------
+// Rutas y eventos
+// ---------------------------------------------------------------------------
+function view() {
+  const [a, b] = parseHash().parts;
+  if (!a) return home();
+  switch (a) {
+    case 'tarea': { const task = TASKS.find(x => x.id === b); return task ? taskPage(task) : notFound(); }
+    case 'buscar': return results(parseHash().parts.slice(1).join('/'));
+    case 'top': return topPage();
+    case 'explorar': return explorePage();
+    case 'alternativas': return altsIndex();
+    case 'alternativas-a': return altPage(b);
+    case 'alertas': return alertsPage();
+  }
+  const p = BY_LC[`${a}/${b || ''}`.toLowerCase()];
+  return p ? project(p) : notFound();
+}
+function render() {
+  state.listCtx = null;
+  document.documentElement.lang = state.lang;
+  document.documentElement.dataset.theme = state.theme;
+  const main = view();
+  $('#app').innerHTML = header() + alertBar() + main + footer() + mockPanel();
+  icons();
+  countUp();
+  state.entering = false;
+}
+
+window.addEventListener('hashchange', () => {
+  withTransition('route', () => { closeModal(true); state.entering = true; render(); window.scrollTo(0, 0); });
+});
+
+// Luz que sigue al cursor
+document.addEventListener('pointermove', e => {
+  const el = e.target.closest && e.target.closest('.spot');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--x', `${e.clientX - r.left}px`);
+  el.style.setProperty('--y', `${e.clientY - r.top}px`);
+}, { passive: true });
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('[role="search"]')) hideSuggest();
+  if (!e.target.closest('[data-mega-wrap]')) $('#mega')?.classList.add('hidden');
+  const el = e.target.closest('[data-action],[data-lang],[data-fopt],[data-fone],[data-fquick],[data-fremove],[data-fsort]');
+  if (!el) return;
+  const d = el.dataset;
+  if (d.lang) {
+    if (state.lang !== d.lang) {
+      const reopen = state.drawerOpen ? openDrawer : state.sheetOpen ? openFilterSheet : null;
+      withTransition('lang', () => {
+        state.lang = d.lang;
+        store.set('aop-lang', state.lang);
+        render();
+        if (reopen) reopen();
+      });
+    }
+    return;
+  }
+  if (d.fopt) {
+    const [k, v] = d.fopt.split(':');
+    const f = currentFilters();
+    if (k === 'es') f.es = !f.es;
+    else f[k] = f[k].includes(v) ? f[k].filter(x => x !== v) : [...f[k], v];
+    setFilters(f);
+    return;
+  }
+  if (d.fone) {
+    const [k, v] = d.fone.split(':');
+    const f = currentFilters();
+    f[k] = Number(v);
+    setFilters(f);
+    return;
+  }
+  if (d.fsort) {
+    const f = currentFilters();
+    f.orden = d.fsort;
+    setFilters(f);
+    return;
+  }
+  if (d.fquick) {
+    const f = currentFilters();
+    const only = (arr, v) => (arr.length === 1 && arr[0] === v ? [] : [v]);
+    if (d.fquick === 'myos') f.so = only(f.so, state.os);
+    if (d.fquick === 'open') f.lic = only(f.lic, 'open');
+    if (d.fquick === 'es') f.es = !f.es;
+    if (d.fquick === 'easy') f.inst = only(f.inst, 'easy');
+    setFilters(f);
+    return;
+  }
+  if (d.fremove) {
+    const [k, v] = d.fremove.split(':');
+    const f = currentFilters();
+    if (k === 'es') f.es = false;
+    else if (k === 'min') f.min = 0;
+    else f[k] = f[k].filter(x => x !== v);
+    setFilters(f);
+    return;
+  }
+  switch (d.action) {
+    case 'mega': {
+      const panel = $('#mega');
+      const open = panel.classList.toggle('hidden') === false;
+      el.setAttribute('aria-expanded', String(open));
+      break;
+    }
+    case 'menu': openDrawer(); break;
+    case 'theme': {
+      // El tema nuevo se revela en un círculo que crece desde el botón pulsado
+      const next = state.theme === 'dark' ? 'light' : 'dark';
+      const box = el.getBoundingClientRect();
+      const x = box.left + box.width / 2, y = box.top + box.height / 2;
+      // Los colores son variables CSS: basta con cambiar el tema y el icono, sin redibujar la página
+      const vt = withTransition('theme', () => { setTheme(next); syncThemeButtons(); });
+      if (vt) vt.ready.then(() => {
+        const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 600, easing: 'cubic-bezier(.16, 1, .3, 1)', pseudoElement: '::view-transition-new(root)' },
+        );
+      }).catch(() => {});
+      break;
+    }
+    case 'open-filters': openFilterSheet(); break;
+    case 'close-alert': state.alert = false; session.set('aop-alert', 'off'); render(); break;
+    case 'search': searchModal(); break;
+    case 'toast': toast(d.msg); break;
+    case 'agents': agentsModal(); break;
+    case 'agent-view': agentView(BY_ID[d.id]); break;
+    case 'close-modal': closeModal(); break;
+    case 'modal-bg': if (e.target === el) closeModal(); break;
+    case 'cta': ctaClick(BY_ID[d.id]); break;
+    case 'gh': toast(t('toast_github')(d.id)); break;
+    case 'set-os': setOS(d.os); break;
+    case 'copy': copyText(d.text); break;
+    case 'clear-filters': setFilters(emptyFilters(currentFilters().orden)); break;
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.matches('select[data-action="os"]')) setOS(e.target.value);
+  if (e.target.matches('select[data-sort]')) {
+    const f = currentFilters();
+    f.orden = e.target.value;
+    setFilters(f);
+  }
+});
+
+document.addEventListener('input', e => {
+  const inp = e.target.closest('input[data-search]');
+  if (inp) renderSuggest(inp.dataset.search, inp.value);
+});
+
+document.addEventListener('submit', e => {
+  const form = e.target;
+  if (form.matches('[data-action="search-submit"]')) {
+    e.preventDefault();
+    const q = form.querySelector('input').value.trim();
+    if (q) go(q);
+  } else if (form.matches('[data-action="subscribe"]')) {
+    e.preventDefault();
+    form.reset();
+    toast(t('subscribed'));
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hideSuggest(); $('#mega')?.classList.add('hidden'); closeModal(); return; }
+  const typing = e.target.closest('input, textarea, select');
+  if (!typing && (e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'))) {
+    e.preventDefault();
+    searchModal();
+    return;
+  }
+  const form = e.target.closest('[role="search"]');
+  if (form && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    const links = [...form.querySelectorAll('[data-suggest] a')];
+    if (!links.length) return;
+    e.preventDefault();
+    const i = links.indexOf(document.activeElement);
+    links[e.key === 'ArrowDown' ? (i + 1) % links.length : (i <= 0 ? links.length - 1 : i - 1)].focus();
+  }
+});
+
+render();
+})();
+</script>
+</body>
+</html>

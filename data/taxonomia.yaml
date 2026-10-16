@@ -1,0 +1,462 @@
+# Taxonomía: áreas y subtemas del catálogo, en español e inglés.
+#
+# - id: identificador estable y dirección en español (/temas/{id}).
+# - slug_en: dirección en inglés (/en/topics/{slug_en}).
+# - publico: «usar» (listo para usar) o «programar» (para programadores). Es el valor por defecto
+#   del subtema; cada proyecto puede tener el suyo.
+# - topics: topics de GitHub que llevan a un repositorio a este subtema. Cada topic va en un solo
+#   subtema. Se eligen con «pnpm --filter @aop/jobs run explorar -- <topic>»: se descartan los que
+#   mezclan cosas distintas (por ejemplo, «matrix», que también son matrices matemáticas).
+# - icono y tono: icono de Lucide y tono del color (0-360), como en la maqueta.
+# - portada: aparece entre las tareas de la portada.
+
+version: 1
+areas:
+  - id: fotos
+    slug_en: photos
+    nombre: { es: "Fotos", en: "Photos" }
+    icono: image
+    tono: 35
+    portada: true
+    subtemas:
+      - id: edicion-de-fotos
+        slug_en: photo-editing
+        nombre: { es: "Edición de fotos", en: "Photo editing" }
+        publico: usar
+        topics: [photo-editor, image-editor, photo-editing, image-editing, raw-processing, raw-image, photography, photo-retouching, darkroom, image-manipulation, graphics-editor]
+      - id: dibujo-y-diseno
+        slug_en: drawing-and-design
+        nombre: { es: "Dibujo y diseño gráfico", en: "Drawing and graphic design" }
+        publico: usar
+        topics: [digital-painting, painting, illustration, drawing-app, pixel-art, sprite-editor, paint, sketching, digital-art, vector-graphics, vector-editor, svg-editor, graphic-design, design-tool, prototyping]
+      - id: iconos-y-fuentes
+        slug_en: icons-and-fonts
+        nombre: { es: "Iconos y fuentes", en: "Icons and fonts" }
+        publico: programar
+        topics: [icons, icon-pack, icon-set, svg-icons, icon-font, fonts, font, typeface]
+      - id: 3d-y-cad
+        slug_en: 3d-and-cad
+        nombre: { es: "3D, CAD e impresión 3D", en: "3D, CAD and 3D printing" }
+        publico: usar
+        topics: [3d-modeling, 3d-graphics, cad, 3d-printing, parametric-modeling, sculpting, slicer, cnc, pcb, kicad]
+      - id: ver-y-organizar-fotos
+        slug_en: photo-management
+        nombre: { es: "Ver y organizar fotos", en: "Photo viewing and management" }
+        publico: usar
+        topics: [photo-gallery, photos, photo-management, photos-management, google-photos, google-photos-alternative, photo-library, image-gallery, image-viewer, photo-viewer]
+
+  - id: video
+    slug_en: video
+    nombre: { es: "Vídeo", en: "Video" }
+    icono: clapperboard
+    tono: 265
+    portada: true
+    subtemas:
+      - id: edicion-de-video
+        slug_en: video-editing
+        nombre: { es: "Edición de vídeo y animación", en: "Video editing and animation" }
+        publico: usar
+        topics: [video-editor, video-editing, nle, 2d-animation, stop-motion]
+      - id: grabar-pantalla
+        slug_en: screen-recording
+        nombre: { es: "Grabar la pantalla y emitir en directo", en: "Screen recording and live streaming" }
+        publico: usar
+        topics: [screen-recorder, screen-recording, screencast, screen-capture, live-streaming, obs, obs-studio, obs-plugin, gif-recorder]
+      - id: reproductores-de-video
+        slug_en: video-players
+        nombre: { es: "Reproductores de vídeo", en: "Video players" }
+        publico: usar
+        topics: [media-player, video-player, mpv, media-center]
+      - id: convertir-y-descargar-video
+        slug_en: video-conversion-and-download
+        nombre: { es: "Convertir y descargar vídeo", en: "Video conversion and download" }
+        publico: usar
+        topics: [video-converter, video-conversion, transcoding, video-compression, youtube-dl, youtube-downloader, video-downloader, yt-dlp]
+
+  - id: musica
+    slug_en: music
+    nombre: { es: "Música", en: "Music" }
+    icono: music
+    tono: 345
+    portada: true
+    subtemas:
+      - id: musica-y-audio
+        slug_en: music-and-audio-production
+        nombre: { es: "Crear y editar música y audio", en: "Music and audio production" }
+        publico: usar
+        topics: [audio-editor, audio-editing, sound-editor, daw, music-production, digital-audio-workstation, synthesizer, synth, vst, vst3, audio-plugin, midi, music-notation, sheet-music, musescore, dj, music-composition]
+      - id: reproductores-de-musica
+        slug_en: music-players
+        nombre: { es: "Reproductores de música y podcasts", en: "Music and podcast players" }
+        publico: usar
+        topics: [music-player, audio-player, music-library, podcasts, podcast-client, internet-radio, music-streaming, lyrics, scrobbling]
+
+  - id: ia
+    slug_en: ai
+    nombre: { es: "IA", en: "AI" }
+    icono: sparkles
+    tono: 305
+    portada: true
+    subtemas:
+      - id: chat-con-ia
+        slug_en: ai-chat
+        nombre: { es: "Chat con IA", en: "AI chat" }
+        publico: usar
+        topics: [llm-ui, ai-chat, chat-ui, ai-chatbot, chatbot-ui, chatgpt-app]
+      - id: ia-en-tu-ordenador
+        slug_en: local-ai
+        nombre: { es: "IA en tu ordenador", en: "Local AI" }
+        publico: usar
+        topics: [local-llm, llama-cpp, llamacpp, ollama, gguf, local-ai, llm-inference, llm-serving]
+      - id: imagenes-y-video-con-ia
+        slug_en: ai-images-and-video
+        nombre: { es: "Imágenes y vídeo con IA", en: "AI images and video" }
+        publico: usar
+        topics: [stable-diffusion, image-generation, text-to-image, diffusion-models, comfyui, ai-art, image-upscaling, super-resolution, background-removal, face-restoration, text-to-video, video-generation]
+      - id: voz-con-ia
+        slug_en: ai-voice
+        nombre: { es: "Voz y transcripción con IA", en: "AI voice and transcription" }
+        publico: usar
+        topics: [speech-recognition, text-to-speech, tts, speech-to-text, whisper, asr, voice-cloning, speech-synthesis, voice-conversion, transcription]
+      - id: agentes-de-ia
+        slug_en: ai-agents
+        nombre: { es: "Agentes y aplicaciones con IA", en: "AI agents and LLM apps" }
+        publico: programar
+        topics: [ai-agents, ai-agent, agents, autonomous-agents, agentic-ai, llm-agent, multi-agent, agent-framework, rag, retrieval-augmented-generation, langchain, llamaindex, llmops, llm-framework]
+      - id: mcp-y-skills
+        slug_en: mcp-and-skills
+        nombre: { es: "MCP y skills para agentes", en: "MCP and agent skills" }
+        publico: programar
+        topics: [mcp, mcp-server, model-context-protocol, mcp-servers, mcp-client, agent-skills, claude-skills]
+      - id: programar-con-ia
+        slug_en: ai-coding
+        nombre: { es: "Programar con IA", en: "AI coding" }
+        publico: programar
+        topics: [ai-coding, coding-assistant, code-assistant, coding-agent, ai-coding-assistant, ai-ide, vibe-coding, claude-code]
+      - id: aprendizaje-automatico
+        slug_en: machine-learning
+        nombre: { es: "Aprendizaje automático", en: "Machine learning" }
+        publico: programar
+        topics: [machine-learning, deep-learning, pytorch, tensorflow, neural-network, computer-vision, object-detection, nlp, natural-language-processing, transformers, reinforcement-learning, fine-tuning, ocr]
+
+  - id: oficina
+    slug_en: office
+    nombre: { es: "Oficina", en: "Office" }
+    icono: file-text
+    tono: 220
+    portada: true
+    subtemas:
+      - id: ofimatica
+        slug_en: office-suites
+        nombre: { es: "Documentos, hojas de cálculo y presentaciones", en: "Documents, spreadsheets and presentations" }
+        publico: usar
+        topics: [office-suite, word-processor, spreadsheet, presentation, slides]
+      - id: pdf-y-libros
+        slug_en: pdf-and-ebooks
+        nombre: { es: "PDF, documentos y libros electrónicos", en: "PDF, documents and ebooks" }
+        publico: usar
+        topics: [pdf-editor, pdf-viewer, pdf-reader, pdf-tools, pdf-converter, document-management, paperless, ebook, ebook-reader, epub, epub-reader, ebooks, ebook-manager, manga-reader, comic-reader, audiobooks]
+      - id: notas-y-wikis
+        slug_en: notes-and-wikis
+        nombre: { es: "Notas y wikis", en: "Notes and wikis" }
+        publico: usar
+        topics: [note-taking, notes, notes-app, knowledge-base, knowledge-management, pkm, zettelkasten, second-brain, wiki, markdown-editor, personal-knowledge-management, outliner, notion-alternative, journal]
+      - id: tareas-y-proyectos
+        slug_en: tasks-and-projects
+        nombre: { es: "Tareas y proyectos", en: "Tasks and projects" }
+        publico: usar
+        topics: [todo, todolist, todo-app, task-management, project-management, kanban, kanban-board, issue-tracker, gtd, time-tracking, time-tracker, pomodoro]
+      - id: automatizacion
+        slug_en: automation
+        nombre: { es: "Automatización y apps sin código", en: "Automation and no-code" }
+        publico: usar
+        topics: [workflow-automation, ifttt, zapier, ipaas, integration-platform, no-code, nocode, low-code, low-code-platform, internal-tools, rpa, app-builder, airtable-alternative]
+      - id: pizarras-y-diagramas
+        slug_en: whiteboards-and-diagrams
+        nombre: { es: "Pizarras, diagramas y mapas mentales", en: "Whiteboards, diagrams and mind maps" }
+        publico: usar
+        topics: [whiteboard, drawing, diagrams, diagram, mindmap, mind-map, mind-mapping, flowchart, diagramming, uml, excalidraw]
+      - id: empresa-y-finanzas
+        slug_en: business-and-finance
+        nombre: { es: "Empresa y finanzas", en: "Business and finance" }
+        publico: usar
+        topics: [accounting, invoicing, invoice, erp, crm, bookkeeping, point-of-sale, inventory-management, hrms, e-signature, esignature, digital-signature, helpdesk, customer-support, ticketing, personal-finance, budgeting, budget, expense-tracker, money-manager]
+
+  - id: internet
+    slug_en: internet
+    nombre: { es: "Internet", en: "Internet" }
+    icono: globe
+    tono: 195
+    subtemas:
+      - id: navegadores
+        slug_en: browsers
+        nombre: { es: "Navegadores", en: "Web browsers" }
+        publico: usar
+        topics: [web-browser, browser-engine]
+      - id: correo-y-calendario
+        slug_en: email-and-calendar
+        nombre: { es: "Correo y calendario", en: "Email and calendar" }
+        publico: usar
+        topics: [email-client, mail-client, webmail, mail-server, smtp-server, imap, caldav, carddav, newsletter]
+      - id: mensajeria
+        slug_en: messaging
+        nombre: { es: "Mensajería y videollamadas", en: "Messaging and video calls" }
+        publico: usar
+        topics: [messenger, instant-messaging, xmpp, chat-app, team-chat, slack-alternative, video-conferencing, voip, video-call, encrypted-messaging, discord-alternative, livechat]
+      - id: descargas
+        slug_en: downloads
+        nombre: { es: "Descargas y envío de archivos", en: "Downloads and file transfer" }
+        publico: usar
+        topics: [torrent, bittorrent, torrent-client, download-manager, file-transfer, file-sharing]
+      - id: rss-y-marcadores
+        slug_en: rss-and-bookmarks
+        nombre: { es: "Noticias, RSS y marcadores", en: "News, RSS and bookmarks" }
+        publico: usar
+        topics: [rss, rss-reader, feed-reader, rss-aggregator, news-reader, read-it-later, bookmarks, bookmark-manager]
+      - id: redes-sociales
+        slug_en: social-networks
+        nombre: { es: "Redes sociales libres", en: "Open social networks" }
+        publico: usar
+        topics: [fediverse, mastodon, activitypub, decentralized-social, nostr, mastodon-client]
+
+  - id: sistema
+    slug_en: system
+    nombre: { es: "Sistema", en: "System" }
+    icono: wrench
+    tono: 90
+    subtemas:
+      - id: archivos-y-copias
+        slug_en: files-and-backups
+        nombre: { es: "Archivos, discos y copias de seguridad", en: "Files, disks and backups" }
+        publico: usar
+        topics: [file-manager, file-explorer, 7zip, duplicate-finder, file-search, backup, backup-tool, backups, incremental-backup, deduplication, bootable-usb, iso, partition, disk-usage, data-recovery]
+      - id: utilidades
+        slug_en: desktop-utilities
+        nombre: { es: "Utilidades y personalización", en: "Desktop utilities and customization" }
+        publico: usar
+        topics: [launcher, app-launcher, clipboard-manager, screenshot, screenshot-tool, customization, window-manager, tiling-window-manager, menubar, macos-menubar, taskbar, powertoys, windows-customization, desktop-widgets, keyboard-shortcuts, hotkeys, ricing, winget]
+      - id: limpieza-y-rendimiento
+        slug_en: cleanup-and-performance
+        nombre: { es: "Limpieza y rendimiento", en: "Cleanup and performance" }
+        publico: usar
+        topics: [system-monitor, system-cleaner, cleaner, debloat, windows-debloater, performance-monitor, htop, windows-optimization, hardware-monitor, resource-monitor, disk-cleanup]
+      - id: escritorio-remoto
+        slug_en: remote-desktop-and-virtualization
+        nombre: { es: "Escritorio remoto y máquinas virtuales", en: "Remote desktop and virtual machines" }
+        publico: usar
+        topics: [remote-desktop, rdp, vnc, remote-access, virtualization, hypervisor, qemu, kvm, wine]
+      - id: sistemas-operativos
+        slug_en: operating-systems
+        nombre: { es: "Sistemas operativos", en: "Operating systems" }
+        publico: usar
+        topics: [operating-system, linux-distribution, distro, desktop-environment]
+
+  - id: juegos
+    slug_en: games
+    nombre: { es: "Juegos", en: "Games" }
+    icono: gamepad-2
+    tono: 145
+    portada: true
+    subtemas:
+      - id: juegos-libres
+        slug_en: open-source-games
+        nombre: { es: "Juegos libres", en: "Open source games" }
+        publico: usar
+        topics: [open-source-game, video-game, roguelike, strategy-game, multiplayer-game, browser-game, puzzle-game, rpg, indie-game]
+      - id: emuladores
+        slug_en: emulators
+        nombre: { es: "Emuladores", en: "Emulators" }
+        publico: usar
+        topics: [emulator, retro-gaming, retrogaming, nintendo, playstation, gameboy, nes, snes, arcade, libretro, retroarch, nintendo-switch, ps2, gba, nds, 3ds, wii]
+      - id: motores-de-juego
+        slug_en: game-engines
+        nombre: { es: "Motores para crear juegos", en: "Game engines" }
+        publico: programar
+        topics: [game-engine, game-development, gamedev, game-framework, 2d-game-engine, 3d-engine, level-editor, bevy]
+      - id: herramientas-para-jugar
+        slug_en: gaming-tools
+        nombre: { es: "Lanzadores, mods y servidores de juegos", en: "Game launchers, mods and servers" }
+        publico: usar
+        topics: [game-launcher, minecraft-launcher, mod-manager, steam, steam-deck, linux-gaming, game-streaming, game-server, minecraft-server]
+
+  - id: seguridad
+    slug_en: security
+    nombre: { es: "Seguridad", en: "Security" }
+    icono: shield-check
+    tono: 165
+    portada: true
+    subtemas:
+      - id: contrasenas-y-cifrado
+        slug_en: passwords-and-encryption
+        nombre: { es: "Contraseñas, doble factor y cifrado", en: "Passwords, 2FA and encryption" }
+        publico: usar
+        topics: [password-manager, passwords, password-store, keepass, bitwarden, 2fa, totp, authenticator, two-factor-authentication, e2ee, end-to-end-encryption, pgp, gpg, file-encryption, disk-encryption]
+      - id: privacidad-y-anuncios
+        slug_en: privacy-and-ad-blocking
+        nombre: { es: "Privacidad y bloqueo de anuncios", en: "Privacy and ad blocking" }
+        publico: usar
+        topics: [adblock, ad-blocker, adblocker, privacy-tools, tracker-blocker, dns-sinkhole, ublock, content-blocker, anti-tracking, ad-blocking, pihole, adguard, degoogle]
+      - id: vpn-y-redes
+        slug_en: vpn-and-networking
+        nombre: { es: "VPN y redes", en: "VPN and networking" }
+        publico: usar
+        topics: [vpn, wireguard, openvpn, mesh-vpn, zero-trust, tunneling]
+      - id: identidad-y-acceso
+        slug_en: authentication-and-identity
+        nombre: { es: "Inicio de sesión e identidad", en: "Authentication and identity" }
+        publico: programar
+        topics: [authentication, sso, oauth2, oidc, openid-connect, iam, single-sign-on, identity-provider, passkeys, webauthn, saml]
+      - id: hacking-etico
+        slug_en: ethical-hacking
+        nombre: { es: "Hacking ético e ingeniería inversa", en: "Ethical hacking and reverse engineering" }
+        publico: programar
+        topics: [pentesting, penetration-testing, security-tools, hacking, red-team, bug-bounty, ctf, osint, vulnerability-scanner, security-scanner, offensive-security, recon, reconnaissance, cybersecurity, infosec, threat-intelligence, siem, forensics, incident-response, reverse-engineering, disassembler, decompiler, malware-analysis, binary-analysis, debugger, ghidra, ida-pro, binary-exploitation, frida, firmware-analysis]
+      - id: seguridad-del-codigo
+        slug_en: code-security
+        nombre: { es: "Seguridad del código", en: "Code security" }
+        publico: programar
+        topics: [devsecops, sast, security-audit, vulnerability-detection, supply-chain-security, secrets-detection, container-security, sbom, appsec, vulnerability-management]
+
+  - id: autoalojado
+    slug_en: self-hosted
+    nombre: { es: "Autoalojado", en: "Self-hosted" }
+    icono: server
+    tono: 125
+    subtemas:
+      - id: nube-personal
+        slug_en: personal-cloud
+        nombre: { es: "Tu propia nube", en: "Personal cloud" }
+        publico: usar
+        topics: [nextcloud, cloud-storage, file-sync, webdav, owncloud, file-hosting]
+      - id: servidor-multimedia
+        slug_en: media-server
+        nombre: { es: "Pelis, series y música en casa", en: "Home media server" }
+        publico: usar
+        topics: [media-server, jellyfin, plex, subsonic, music-server, home-media]
+      - id: domotica
+        slug_en: home-automation
+        nombre: { es: "Domótica", en: "Home automation" }
+        publico: usar
+        topics: [home-automation, smart-home, home-assistant, zigbee, homekit, esphome, z-wave]
+      - id: servidor-en-casa
+        slug_en: home-server
+        nombre: { es: "Servidor en casa", en: "Home server and homelab" }
+        publico: usar
+        topics: [homelab, home-server, docker-management, server-management, control-panel, unraid, truenas, proxmox, homepage, startpage]
+      - id: webs-y-tiendas
+        slug_en: websites-and-stores
+        nombre: { es: "Webs, blogs y tiendas online", en: "Websites, blogs and online stores" }
+        publico: usar
+        topics: [cms, blogging, blogging-platform, headless-cms, website-builder, ecommerce, e-commerce, shop, online-store, woocommerce, forum, forum-software, link-in-bio]
+
+  - id: programar
+    slug_en: code
+    nombre: { es: "Programar", en: "Code" }
+    icono: code-xml
+    tono: 250
+    portada: true
+    subtemas:
+      - id: editores-de-codigo
+        slug_en: code-editors
+        nombre: { es: "Editores de código", en: "Code editors" }
+        publico: programar
+        topics: [code-editor, ide, text-editor, neovim, vim, emacs]
+      - id: terminal
+        slug_en: terminal
+        nombre: { es: "Terminal y línea de comandos", en: "Terminal and command line" }
+        publico: programar
+        topics: [terminal, terminal-emulator, shell, command-line-tool, tui, zsh, tmux]
+      - id: git
+        slug_en: git
+        nombre: { es: "Git y control de versiones", en: "Git and version control" }
+        publico: programar
+        topics: [git, git-client, git-gui, version-control, gitea, code-review]
+      - id: desarrollo-web
+        slug_en: web-frameworks
+        nombre: { es: "Frameworks web", en: "Web frameworks" }
+        publico: programar
+        topics: [web-framework, frontend-framework, fullstack, static-site-generator, react-framework, meta-framework, mvc]
+      - id: componentes-y-css
+        slug_en: ui-components-and-css
+        nombre: { es: "Componentes de interfaz y CSS", en: "UI components and CSS" }
+        publico: programar
+        topics: [ui-components, component-library, ui-library, css-framework, ui-kit, react-components, shadcn, headless-ui, web-components, ui-framework, design-tools]
+      - id: apps-moviles-y-escritorio
+        slug_en: mobile-and-desktop-apps
+        nombre: { es: "Crear apps móviles y de escritorio", en: "Mobile and desktop app development" }
+        publico: programar
+        topics: [app-framework, mobile-development, gui-framework, webview]
+      - id: backend-y-apis
+        slug_en: backend-and-apis
+        nombre: { es: "Backend y APIs", en: "Backend and APIs" }
+        publico: programar
+        topics: [backend, baas, backend-as-a-service, orm, api-gateway, api-client, http-client, http-server, web-server]
+      - id: devops
+        slug_en: devops
+        nombre: { es: "DevOps y monitorización", en: "DevOps and monitoring" }
+        publico: programar
+        topics: [devops, kubernetes, ci-cd, infrastructure-as-code, terraform, deployment, paas, gitops, helm, containers, object-storage, reverse-proxy, monitoring, observability, uptime-monitor, metrics, apm, tracing, opentelemetry, alerting, status-page]
+      - id: pruebas-y-calidad
+        slug_en: testing-and-code-quality
+        nombre: { es: "Pruebas y calidad del código", en: "Testing and code quality" }
+        publico: programar
+        topics: [test-automation, e2e-testing, unit-testing, testing-framework, load-testing, mocking, testing-tools, test-runner, linter, formatter]
+      - id: lenguajes
+        slug_en: languages-and-compilers
+        nombre: { es: "Lenguajes y compiladores", en: "Languages and compilers" }
+        publico: programar
+        topics: [programming-language, compiler, interpreter, runtime, javascript-runtime, transpiler, language-server, lsp, build-tool, bundler, package-manager]
+
+  - id: datos
+    slug_en: data
+    nombre: { es: "Datos", en: "Data" }
+    icono: database
+    tono: 10
+    subtemas:
+      - id: bases-de-datos
+        slug_en: databases-and-search
+        nombre: { es: "Bases de datos y buscadores", en: "Databases and search engines" }
+        publico: programar
+        topics: [database, nosql, key-value-store, key-value, time-series-database, vector-database, graph-database, distributed-database, olap, embedded-database, sql-database, search-engine, full-text-search, fulltext-search, database-client, database-gui, sql-client, database-management, database-tools, sql-editor]
+      - id: analitica-y-paneles
+        slug_en: analytics-and-dashboards
+        nombre: { es: "Analítica web y paneles de datos", en: "Web analytics and dashboards" }
+        publico: usar
+        topics: [business-intelligence, bi, data-analytics, data-visualization, charts, charting, web-analytics, google-analytics, google-analytics-alternative, product-analytics, session-replay]
+      - id: ciencia-de-datos
+        slug_en: data-science
+        nombre: { es: "Ciencia de datos", en: "Data science" }
+        publico: programar
+        topics: [data-science, jupyter, jupyter-notebook, pandas, dataframe, data-analysis, scientific-computing]
+      - id: ingenieria-de-datos
+        slug_en: data-engineering-and-scraping
+        nombre: { es: "Ingeniería de datos y scraping", en: "Data engineering and scraping" }
+        publico: programar
+        topics: [etl, data-pipeline, data-engineering, elt, workflow-orchestration, stream-processing, data-integration, big-data, web-scraping, scraper, crawler, scraping, spider, web-crawler, data-extraction]
+      - id: mapas
+        slug_en: maps
+        nombre: { es: "Mapas y geografía", en: "Maps and GIS" }
+        publico: usar
+        topics: [gis, maps, geospatial, openstreetmap, geocoding, osm]
+
+  - id: aprender
+    slug_en: learn
+    nombre: { es: "Aprender", en: "Learn" }
+    icono: graduation-cap
+    tono: 55
+    subtemas:
+      - id: idiomas-y-traduccion
+        slug_en: languages-and-translation
+        nombre: { es: "Idiomas, memoria y traducción", en: "Languages, flashcards and translation" }
+        publico: usar
+        topics: [flashcards, spaced-repetition, anki, language-learning, vocabulary, translator, machine-translation]
+      - id: educacion
+        slug_en: education
+        nombre: { es: "Educación y escuela", en: "Education and school" }
+        publico: usar
+        topics: [e-learning, elearning, learning-management-system, edtech, kids, children, educational-games, typing-test]
+      - id: ciencia-e-investigacion
+        slug_en: science-and-research
+        nombre: { es: "Ciencia, matemáticas e investigación", en: "Science, math and research" }
+        publico: usar
+        topics: [math, mathematics, astronomy, planetarium, chemistry, computer-algebra-system, reference-manager, citation, bibliography, zotero]
