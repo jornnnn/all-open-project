@@ -13,6 +13,11 @@
       "database_id": "72b47222-ec73-4b83-8009-ffc7a1134e28",
       "migrations_dir": "migrations"
     }
-  ]
-  // INGEST_KEY es un secreto: «wrangler secret put INGEST_KEY» en Cloudflare y .dev.vars en local.
+  ],
+  // A los :23 de cada hora el Worker pide a GitHub que ejecute el radar y, a las 03:23 UTC, también
+  // el robot diario (src/disparo.ts): las tareas programadas de GitHub no son fiables. Es uno de los
+  // 5 crons gratuitos de la cuenta, que comparten todos los proyectos de Marc.
+  "triggers": { "crons": ["23 * * * *"] }
+  // Secretos: INGEST_KEY («wrangler secret put INGEST_KEY» en Cloudflare y .dev.vars en local) y
+  // DISPARO_TOKEN (token de GitHub que solo puede lanzar los workflows de este repo).
 }

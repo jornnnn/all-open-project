@@ -2,7 +2,7 @@
 
 Dos Workers de Cloudflare (Hono + D1) con la misma base de datos:
 
-- **Público** (`wrangler.jsonc`, `all-open-project`): recibe los datos del robot y del radar en `/ingest`, sirve la salud de los dos y las tendencias. La API completa, el servidor MCP, la búsqueda y la versión Markdown de las páginas llegan en las fases E y F.
+- **Público** (`wrangler.jsonc`, `all-open-project`): recibe los datos del robot y del radar en `/ingest`, sirve la salud de los dos y las tendencias. Su cron (a los :23 de cada hora) pide a GitHub que ejecute el radar y, a las 03:23 UTC, también el robot diario (`src/disparo.ts`), porque las tareas programadas de GitHub no son fiables. Usa el secreto `DISPARO_TOKEN`: un token de GitHub que solo puede lanzar los workflows de este repo (permiso «Actions: Read and write»). Si ya hay una ejecución reciente (por ejemplo, una lanzada a mano), no la repite; si no puede lanzar, lo apunta en `/estado`. La API completa, el servidor MCP, la búsqueda y la versión Markdown de las páginas llegan en las fases E y F.
 - **Revisión** (`wrangler.revisar.jsonc`, `all-open-project-revisar`): la página donde una persona decide sobre las posibles copias falsas y los proyectos nuevos que propone el radar. Se protege entero con Cloudflare Access (pestaña «Access» del Worker → «All traffic»). Además, el Worker comprueba que la petición viene de Access (`ctx.access`) y que el correo está en el secreto `REVISORES` (separados por comas). Sin las dos cosas, no abre.
 
 | Ruta | Para qué |

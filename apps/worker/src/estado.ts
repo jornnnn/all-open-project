@@ -9,8 +9,8 @@ import type { Contexto } from './tipos.ts';
 export const HORAS_RETRASO = 26;
 /** Una ejecución que lleva más de estas horas «en curso» se ha quedado colgada. */
 export const HORAS_COLGADA = 2;
-/** Hora (UTC) del cron de .github/workflows/robot-diario.yml. */
-export const HORA_DEL_ROBOT = { horas: 3, minutos: 17 };
+/** Hora (UTC) a la que el cron del Worker lanza el robot diario (wrangler.jsonc y src/disparo.ts). */
+export const HORA_DEL_ROBOT = { horas: 3, minutos: 23 };
 /** Si la última ejecución correcta del radar terminó hace más de estas horas, va con retraso. */
 export const HORAS_RETRASO_RADAR = 3;
 /** Una ejecución del radar que lleva más de esta hora «en curso» se ha quedado colgada. */

@@ -1,14 +1,16 @@
 // Worker de All Open Project: recibe los datos del robot y del radar (/ingest), sirve la salud de
-// los dos (/estado y /api/v1/estado) y las tendencias (/api/v1/tendencias). El resto de la API
-// pública, el MCP y la búsqueda llegan en las fases E y F. La página para revisar las posibles
-// copias es otro Worker (src/revisar.ts), protegido entero con Cloudflare Access.
+// los dos (/estado y /api/v1/estado) y las tendencias (/api/v1/tendencias), y su cron lanza el
+// radar cada hora y el robot cada noche (src/disparo.ts). El resto de la API pública, el MCP y la
+// búsqueda llegan en las fases E y F. La página para revisar las posibles copias es otro Worker
+// (src/revisar.ts), protegido entero con Cloudflare Access.
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { lanzarLoQueToca } from './disparo.ts';
 import { estado } from './estado.ts';
 import { ingesta } from './ingesta.ts';
 import { radar, tendencias } from './radar.ts';
-import type { Contexto } from './tipos.ts';
+import type { Contexto, Entorno } from './tipos.ts';
 
 const app = new Hono<Contexto>();
 
@@ -36,4 +38,10 @@ app.onError((error, c) => {
   return c.json({ error: 'Error interno' }, 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  /** Cron de wrangler.jsonc (a los :23 de cada hora): lanza el radar y, a las 03:23, el robot. */
+  scheduled(controlador, entorno, ctx) {
+    ctx.waitUntil(lanzarLoQueToca(entorno, new Date(controlador.scheduledTime)));
+  },
+} satisfies ExportedHandler<Entorno>;

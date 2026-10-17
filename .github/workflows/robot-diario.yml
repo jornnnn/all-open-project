@@ -1,13 +1,11 @@
 name: Robot diario
 
 # Cada noche: lee de GitHub todo el catálogo, lo guarda en D1 a través del Worker y publica los
-# datos abiertos (data/export/) con un commit. Ese commit también mantiene vivo el repo: GitHub
-# apaga las tareas programadas de los repos públicos que llevan 60 días sin actividad.
+# datos abiertos (data/export/) con un commit.
 
+# Lo lanza el cron del Worker de Cloudflare a las 03:23 UTC (apps/worker/src/disparo.ts), una vez
+# al día: las tareas programadas de GitHub no son fiables. También se puede lanzar a mano.
 on:
-  schedule:
-    # 03:17 UTC: una hora poco habitual, para que GitHub no lo retrase.
-    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -17,6 +15,8 @@ permissions:
 concurrency:
   group: robot-github
   cancel-in-progress: false
+  # Hasta 100 en espera, en orden. Sin esto, GitHub solo deja una esperando y cancela la anterior.
+  queue: max
 
 jobs:
   robot:

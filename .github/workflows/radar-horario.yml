@@ -7,10 +7,10 @@ name: Radar horario
 # Avisos si falla: el radar apunta cada fallo en /estado. Si falla dos veces seguidas, el workflow
 # falla y GitHub manda un correo (a quien mantiene el repo).
 
+# Lo lanza el cron del Worker de Cloudflare a los :23 de cada hora (apps/worker/src/disparo.ts):
+# las tareas programadas de GitHub no son fiables (el 17-oct-2026 no lanzó ninguna de las tres
+# primeras horas). También se puede lanzar a mano.
 on:
-  schedule:
-    # A los :23 de cada hora: lejos de las horas en punto, cuando GitHub va más cargado.
-    - cron: '23 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,6 +20,8 @@ permissions:
 concurrency:
   group: robot-github
   cancel-in-progress: false
+  # Hasta 100 en espera, en orden. Sin esto, GitHub solo deja una esperando y cancela la anterior.
+  queue: max
 
 jobs:
   radar:

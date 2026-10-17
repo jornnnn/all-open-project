@@ -111,15 +111,15 @@ describe('GET /estado', () => {
 });
 
 describe('proximaEjecucion', () => {
-  it('es hoy a las 03:17 UTC si aún no ha pasado, y si no, mañana', () => {
+  it('es hoy a las 03:23 UTC si aún no ha pasado, y si no, mañana', () => {
     expect(proximaEjecucion(new Date('2026-10-17T01:00:00Z')).toISOString()).toBe(
-      '2026-10-17T03:17:00.000Z',
+      '2026-10-17T03:23:00.000Z',
     );
-    expect(proximaEjecucion(new Date('2026-10-17T03:17:00Z')).toISOString()).toBe(
-      '2026-10-18T03:17:00.000Z',
+    expect(proximaEjecucion(new Date('2026-10-17T03:23:00Z')).toISOString()).toBe(
+      '2026-10-18T03:23:00.000Z',
     );
     expect(proximaEjecucion(new Date('2026-12-31T22:00:00Z')).toISOString()).toBe(
-      '2027-01-01T03:17:00.000Z',
+      '2027-01-01T03:23:00.000Z',
     );
   });
 });

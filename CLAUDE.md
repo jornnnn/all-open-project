@@ -5,7 +5,7 @@ Guía técnica del repositorio, para personas y agentes de IA.
 ## Qué es
 Web bilingüe (español principal, inglés) que recoge lo mejor del open source de GitHub, lo explica en lenguaje llano y lo verifica: repo oficial, copias falsas, si sigue vivo y licencia. Monorepo pnpm con TypeScript.
 
-Arquitectura: robot diario y radar horario en GitHub Actions (`jobs/`) → Worker de Cloudflare (`apps/worker/`, Hono + D1) → web estática (`apps/web/`, Astro, Fase E). Todo el trabajo pesado va en Actions; el Worker hace tareas ligeras (10 ms de CPU por petición y 50 consultas a D1 en el plan gratuito). La revisión humana de alertas y de proyectos nuevos es otro Worker, protegido con Cloudflare Access.
+Arquitectura: robot diario y radar horario en GitHub Actions (`jobs/`) → Worker de Cloudflare (`apps/worker/`, Hono + D1) → web estática (`apps/web/`, Astro, Fase E). Los lanza el cron del Worker (a los :23 de cada hora el radar y a las 03:23 UTC el robot), no las tareas programadas de GitHub, que no son fiables. Todo el trabajo pesado va en Actions; el Worker hace tareas ligeras (10 ms de CPU por petición y 50 consultas a D1 en el plan gratuito). La revisión humana de alertas y de proyectos nuevos es otro Worker, protegido con Cloudflare Access.
 
 ## Comandos
 | Comando | Qué hace |
@@ -42,14 +42,15 @@ apps/worker/       Worker público (Hono + D1): /ingest (robot y radar), /estado
   src/ingesta.ts     Escrituras agrupadas con json_each: 6 consultas por petición, lleve lo que lleve
   src/radar.ts       /ingest/radar (estado, horas y guardar, en una transacción) y /api/v1/tendencias
   src/estado.ts      Salud del robot diario y del radar (JSON y página interna)
+  src/disparo.ts     Cron del Worker: lanza el radar y el robot en GitHub Actions (secreto DISPARO_TOKEN)
   src/revisar.ts     Página de revisión (posibles copias y proyectos nuevos); su entrada es
                      src/revisar-worker.ts. Solo abre con Cloudflare Access y un correo de REVISORES
 packages/core/     Lógica pura con tests: estado, licencias (también por su texto), instaladores, temas,
                    listas, puntuación v1, esquemas de data/, formato de los datos abiertos (catalogo.ts),
                    «en auge» (tendencias.ts), regla de entrada al catálogo (candidatos.ts) y copias
 jobs/              Scripts del robot (Node 24)
-  diario.ts          Robot diario (lo lanza .github/workflows/robot-diario.yml a las 03:17 UTC)
-  radar.ts           Radar horario (.github/workflows/radar-horario.yml, a las :23 de cada hora)
+  diario.ts          Robot diario (.github/workflows/robot-diario.yml; lo lanza el cron del Worker a las 03:23 UTC)
+  radar.ts           Radar horario (.github/workflows/radar-horario.yml; lo lanza el cron del Worker a los :23)
   verificar-muestra.ts  Comprueba una muestra de D1 contra GitHub
   lib/github.ts      Cliente GraphQL y REST de solo lectura (reintentos, ritmo, lotes que se parten)
   lib/catalogo.ts    Lógica pura de la ficha diaria de cada proyecto
@@ -82,7 +83,8 @@ design/maqueta/    Copia de la maqueta aprobada, como referencia visual
 ## Límites del plan gratuito que afectan al código
 - **D1: 100.000 filas escritas y 5 millones leídas al día para toda la cuenta**, compartida con otros proyectos de Marc: medido el 17-oct-2026, esos otros proyectos ya gastan ~80.000 escrituras al día, así que aquí queda poco margen. Si se pasa, D1 deja de responder hasta las 00:00 UTC. El radar guarda una sola fila por hora con las estrellas de todo lo que vigila (`hourly`) y, del resto, solo lo que cambia. Cada índice suma una fila escrita por cambio: por eso hay pocos índices, el nombre del repo se actualiza aparte y la búsqueda (FTS5) solo se reescribe si cambia el texto. `/api/v1/estado` lee solo las últimas filas de `runs`.
 - **Worker:** 10 ms de CPU y 50 consultas por petición. El Worker no lee el JSON del robot: lo pasa tal cual a D1, **una sola vez** (se guarda en `ingesta_lotes` y las demás consultas lo leen de ahí), y SQLite lo recorre con `json_each`. Medido en Cloudflare: enviarlo una vez por consulta costaba 24-36 ms de CPU por lote; así, 3-4 ms con lotes de 250 KB. El robot manda lotes de 200 KB.
-- **GitHub Actions:** el robot diario y el radar están en el mismo grupo de concurrencia (`robot-github`), así que nunca van a la vez y no suman sus peticiones a GitHub.
+- **GitHub Actions:** el robot diario y el radar están en el mismo grupo de concurrencia (`robot-github`, con `queue: max` para que una ejecución en espera no cancele a otra), así que nunca van a la vez y no suman sus peticiones a GitHub. No se usan sus tareas programadas: el 17-oct-2026 GitHub no lanzó ninguna de las tres primeras horas del radar.
+- **Cron de Cloudflare:** la cuenta tiene 5 crons gratuitos para todos los proyectos de Marc; este Worker usa uno (`23 * * * *`).
 - **GitHub:** corta las consultas de más de 10 s (por eso, lotes de 25 repos) y limita el tiempo de CPU de GraphQL por minuto, con el token de Actions más que con uno personal. El robot usa el secreto `ROBOT_TOKEN` (token personal de solo lectura, con el que GitHub frena mucho menos) si existe y sirve; si no, el automático de Actions. Su cliente lleva un presupuesto de tiempo de respuesta por minuto (75 s con el personal, 30 s con el de Actions), lo baja un 20 % cada vez que GitHub frena y para todas sus peticiones mientras tanto. Los topics (el 40 % del coste de la consulta) y la revisión de las licencias dudosas se renuevan por turnos, una vez por semana cada proyecto.
 
 ## Reglas del producto que afectan al código
@@ -92,7 +94,7 @@ design/maqueta/    Copia de la maqueta aprobada, como referencia visual
 - Desde julio de 2026 GitHub no deja ver quién dio cada estrella ni cuándo. Las cifras por hora salen de las fotos horarias del radar y las cifras por día, del historial oficial (`/repos/{o}/{r}/stargazers/history`, en días de la hora del Pacífico). Las ganancias se calculan con cotas que nunca exageran.
 - Las correcciones manuales van en `data/editorial.yaml`, con motivo y fecha. El robot diario las aplica cada noche.
 - Si un dato no se puede calcular con seguridad, se marca para revisar (por ejemplo, la licencia `otra`) en vez de suponerlo. «Sin licencia» solo se publica después de buscar en todo el repo.
-- El robot solo lee de GitHub. Lo único que escribe es el commit diario de `data/export/` en este repositorio.
+- El robot solo lee de GitHub. Lo único que escribe es el commit diario de `data/export/` en este repositorio. El Worker solo lanza los workflows de este repositorio (`DISPARO_TOKEN` no permite nada más).
 - Si GitHub no da más del 2 % de la semilla, el robot no publica nada ese día.
 
 ## Reglas de cálculo (detalle en `docs/metodologia.md`)

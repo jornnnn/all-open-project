@@ -85,7 +85,7 @@ It goes from 0 to 100 and **compares each project with the others in its main su
 
 ## Daily data and open data
 
-Every night at 03:17 UTC a robot (GitHub Actions) asks the official GitHub API for the data of the whole catalog: stars, forks, issues, dates, license, website, language, the latest release with its files and whether the organization is verified. Topics, which rarely change and are the most expensive to request, are refreshed in turns: each project once a week (and new ones on their first day). It works out the status, license, installers and score, saves a snapshot of each project (the history) and publishes the result in [`data/export/proyectos.json`](../data/export/), under CC BY 4.0.
+Every night at 03:23 UTC a robot (GitHub Actions) asks the official GitHub API for the data of the whole catalog: stars, forks, issues, dates, license, website, language, the latest release with its files and whether the organization is verified. Topics, which rarely change and are the most expensive to request, are refreshed in turns: each project once a week (and new ones on their first day). It works out the status, license, installers and score, saves a snapshot of each project (the history) and publishes the result in [`data/export/proyectos.json`](../data/export/), under CC BY 4.0.
 
 If GitHub fails to return more than 2% of the projects at once, the robot publishes nothing that day, in case the problem is on its side. The figures for each project are those at the moment they were read (`generado` field).
 

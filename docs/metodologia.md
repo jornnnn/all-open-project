@@ -85,7 +85,7 @@ Va de 0 a 100 y **compara cada proyecto con los de su tema principal** (todos lo
 
 ## Datos diarios y datos abiertos
 
-Cada noche, a las 03:17 UTC, un robot (GitHub Actions) pide a la API oficial de GitHub los datos de todo el catálogo: estrellas, *forks*, *issues*, fechas, licencia, web, lenguaje, la última versión con sus archivos y si la organización está verificada. Los *topics*, que casi nunca cambian y son lo más costoso de pedir, se renuevan por turnos: cada proyecto, una vez por semana (y los nuevos, el primer día). Calcula el estado, la licencia, los instaladores y la puntuación, guarda una foto de cada proyecto (el historial) y publica el resultado en [`data/export/proyectos.json`](../data/export/), con licencia CC BY 4.0.
+Cada noche, a las 03:23 UTC, un robot (GitHub Actions) pide a la API oficial de GitHub los datos de todo el catálogo: estrellas, *forks*, *issues*, fechas, licencia, web, lenguaje, la última versión con sus archivos y si la organización está verificada. Los *topics*, que casi nunca cambian y son lo más costoso de pedir, se renuevan por turnos: cada proyecto, una vez por semana (y los nuevos, el primer día). Calcula el estado, la licencia, los instaladores y la puntuación, guarda una foto de cada proyecto (el historial) y publica el resultado en [`data/export/proyectos.json`](../data/export/), con licencia CC BY 4.0.
 
 Si GitHub no da a la vez más del 2 % de los proyectos, el robot no publica nada ese día, por si el fallo es suyo. Las cifras de cada proyecto son las del momento en que se leyeron (campo `generado`).
 
