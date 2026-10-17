@@ -3,11 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Worker de Cloudflare: recibe los datos del robot en /ingest y sirve /estado y la API.",
+  "description": "Workers de Cloudflare: el público (/ingest, /estado y la API) y el de la revisión de alertas.",
   "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:revisar": "wrangler dev -c wrangler.revisar.jsonc --port 8788",
     "desplegar": "wrangler deploy",
+    "desplegar:revisar": "wrangler deploy -c wrangler.revisar.jsonc",
     "migrar:local": "wrangler d1 migrations apply DB --local",
     "migrar:remoto": "wrangler d1 migrations apply DB --remote",
     "tipos": "wrangler types",
@@ -15,6 +17,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aop/core": "workspace:*",
     "hono": "^4.13.13"
   },
   "devDependencies": {

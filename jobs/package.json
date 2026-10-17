@@ -13,6 +13,7 @@
     "explorar": "node explorar-topics.ts",
     "licencias": "node actualizar-licencias.ts",
     "diario": "node diario.ts",
+    "radar": "node radar.ts",
     "verificar": "node verificar-muestra.ts"
   },
   "dependencies": {

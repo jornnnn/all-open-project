@@ -1,10 +1,13 @@
-// Worker de All Open Project: recibe los datos del robot (/ingest) y sirve la salud del robot
-// (/estado y /api/v1/estado). La API pública, el MCP y la búsqueda llegan en las fases E y F.
+// Worker de All Open Project: recibe los datos del robot y del radar (/ingest), sirve la salud de
+// los dos (/estado y /api/v1/estado) y las tendencias (/api/v1/tendencias). El resto de la API
+// pública, el MCP y la búsqueda llegan en las fases E y F. La página para revisar las posibles
+// copias es otro Worker (src/revisar.ts), protegido entero con Cloudflare Access.
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { estado } from './estado.ts';
 import { ingesta } from './ingesta.ts';
+import { radar, tendencias } from './radar.ts';
 import type { Contexto } from './tipos.ts';
 
 const app = new Hono<Contexto>();
@@ -14,14 +17,17 @@ app.get('/', (c) =>
     nombre: 'All Open Project',
     descripcion: 'Lo mejor del open source, explicado y verificado. La web llegará pronto.',
     estado: '/estado',
-    api: { estado: '/api/v1/estado' },
+    api: { estado: '/api/v1/estado', tendencias: '/api/v1/tendencias' },
     codigo: 'https://github.com/jornnnn/all-open-project',
   }),
 );
 // Los navegadores piden el icono aunque la página no lo enlace: sin contenido, mejor que un 404.
 app.get('/favicon.ico', (c) => c.body(null, 204));
+// El radar va dentro de /ingest para compartir su clave y su límite de tamaño.
+ingesta.route('/radar', radar);
 app.route('/ingest', ingesta);
 app.route('/', estado);
+app.route('/', tendencias);
 
 app.notFound((c) => c.json({ error: 'No existe' }, 404));
 app.onError((error, c) => {

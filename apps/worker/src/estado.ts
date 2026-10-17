@@ -1,6 +1,6 @@
-// Salud del robot: GET /api/v1/estado (JSON) y la página interna /estado.
-// Solo lee las últimas filas de `runs` (por su índice), así que cuesta unas pocas filas leídas
-// aunque la consulte mucha gente.
+// Salud del robot: GET /api/v1/estado (JSON) y la página interna /estado. Enseña el robot diario
+// y el radar horario. Solo lee las últimas filas de `runs` (por su índice) y unos recuentos, así que
+// cuesta unas pocas filas leídas aunque la consulte mucha gente.
 
 import { Hono } from 'hono';
 import type { Contexto } from './tipos.ts';
@@ -11,6 +11,10 @@ export const HORAS_RETRASO = 26;
 export const HORAS_COLGADA = 2;
 /** Hora (UTC) del cron de .github/workflows/robot-diario.yml. */
 export const HORA_DEL_ROBOT = { horas: 3, minutos: 17 };
+/** Si la última ejecución correcta del radar terminó hace más de estas horas, va con retraso. */
+export const HORAS_RETRASO_RADAR = 3;
+/** Una ejecución del radar que lleva más de esta hora «en curso» se ha quedado colgada. */
+export const HORAS_COLGADA_RADAR = 1;
 /** Avisos que se enseñan; el resto solo se cuentan. */
 const AVISOS_VISIBLES = 30;
 
@@ -30,6 +34,17 @@ export interface Ejecucion {
   enlace: string | null;
 }
 
+export interface EstadoRadar {
+  salud: Salud;
+  mensaje: string;
+  ultima_ejecucion: Ejecucion | null;
+  ultima_correcta: Ejecucion | null;
+  /** Posibles copias que esperan revisión (nunca se enseñan aquí). */
+  alertas_pendientes: number;
+  /** Proyectos en auge según la última hora. */
+  en_auge: number | null;
+}
+
 export interface EstadoRobot {
   salud: Salud;
   mensaje: string;
@@ -37,6 +52,7 @@ export interface EstadoRobot {
   proxima_ejecucion: string;
   ultima_ejecucion: Ejecucion | null;
   ultima_correcta: Ejecucion | null;
+  radar: EstadoRadar;
 }
 
 interface FilaEjecucion {
@@ -51,10 +67,12 @@ interface FilaEjecucion {
   enlace: string | null;
 }
 
-const SQL_ULTIMA = `SELECT id, estado, inicio, fin, proyectos, errores, avisos, resumen, enlace
-FROM runs WHERE tipo = 'diario' ORDER BY inicio DESC LIMIT 1`;
-const SQL_ULTIMA_CORRECTA = `SELECT id, estado, inicio, fin, proyectos, errores, avisos, resumen, enlace
-FROM runs WHERE tipo = 'diario' AND estado = 'ok' ORDER BY inicio DESC LIMIT 1`;
+const COLUMNAS = 'id, estado, inicio, fin, proyectos, errores, avisos, resumen, enlace';
+const SQL_ULTIMA = `SELECT ${COLUMNAS} FROM runs WHERE tipo = ?1 ORDER BY inicio DESC LIMIT 1`;
+const SQL_ULTIMA_CORRECTA = `SELECT ${COLUMNAS}
+FROM runs WHERE tipo = ?1 AND estado = 'ok' ORDER BY inicio DESC LIMIT 1`;
+const SQL_ALERTAS_PENDIENTES = `SELECT count(*) AS n FROM alerts WHERE estado = 'pendiente'`;
+const SQL_EN_AUGE = `SELECT json_array_length(valor, '$.en_auge') AS n FROM radar WHERE clave = 'tendencias'`;
 
 function leerFila(fila: FilaEjecucion | undefined): Ejecucion | null {
   if (!fila) return null;
@@ -91,9 +109,15 @@ export function proximaEjecucion(ahora: Date): Date {
 }
 
 export async function leerEstado(db: D1Database, ahora: Date): Promise<EstadoRobot> {
-  const [ultimas, correctas] = await db.batch<FilaEjecucion>([
-    db.prepare(SQL_ULTIMA),
-    db.prepare(SQL_ULTIMA_CORRECTA),
+  const [ultimas, correctas, ultimasRadar, correctasRadar, pendientes, auge] = await db.batch<
+    FilaEjecucion & { n: number | null }
+  >([
+    db.prepare(SQL_ULTIMA).bind('diario'),
+    db.prepare(SQL_ULTIMA_CORRECTA).bind('diario'),
+    db.prepare(SQL_ULTIMA).bind('radar'),
+    db.prepare(SQL_ULTIMA_CORRECTA).bind('radar'),
+    db.prepare(SQL_ALERTAS_PENDIENTES),
+    db.prepare(SQL_EN_AUGE),
   ]);
   const ultima = leerFila(ultimas?.results[0]);
   const correcta = leerFila(correctas?.results[0]);
@@ -102,6 +126,13 @@ export async function leerEstado(db: D1Database, ahora: Date): Promise<EstadoRob
     proxima_ejecucion: proximaEjecucion(ahora).toISOString(),
     ultima_ejecucion: ultima,
     ultima_correcta: correcta,
+    radar: saludDelRadar(
+      leerFila(ultimasRadar?.results[0]),
+      leerFila(correctasRadar?.results[0]),
+      pendientes?.results[0]?.n ?? 0,
+      auge?.results[0]?.n ?? null,
+      ahora,
+    ),
   };
   const horasDesde = (fecha: string) => (ahora.getTime() - Date.parse(fecha)) / 3_600_000;
 
@@ -132,6 +163,46 @@ export async function leerEstado(db: D1Database, ahora: Date): Promise<EstadoRob
     };
   }
   return { ...base, salud: 'ok', mensaje: 'El robot funciona con normalidad.' };
+}
+
+/** Salud del radar: va cada hora, así que se le exige más que al robot diario. */
+export function saludDelRadar(
+  ultima: Ejecucion | null,
+  correcta: Ejecucion | null,
+  alertasPendientes: number,
+  enAuge: number | null,
+  ahora: Date,
+): EstadoRadar {
+  const base = {
+    ultima_ejecucion: ultima,
+    ultima_correcta: correcta,
+    alertas_pendientes: alertasPendientes,
+    en_auge: enAuge,
+  };
+  const horasDesde = (fecha: string) => (ahora.getTime() - Date.parse(fecha)) / 3_600_000;
+  if (!ultima) return { ...base, salud: 'sin-datos', mensaje: 'El radar aún no se ha ejecutado.' };
+  if (ultima.estado === 'en-curso') {
+    if (horasDesde(ultima.inicio) <= HORAS_COLGADA_RADAR) {
+      return { ...base, salud: 'en-curso', mensaje: 'El radar se está ejecutando ahora.' };
+    }
+    return { ...base, salud: 'error', mensaje: 'La última ejecución del radar no terminó.' };
+  }
+  if (ultima.estado === 'error') {
+    return {
+      ...base,
+      salud: 'error',
+      mensaje: `La última ejecución del radar falló: ${ultima.errores[0] ?? 'sin detalle'}`,
+    };
+  }
+  const fin = correcta?.fin ?? correcta?.inicio;
+  if (!fin || horasDesde(fin) > HORAS_RETRASO_RADAR) {
+    return {
+      ...base,
+      salud: 'atrasado',
+      mensaje: `La última ejecución correcta del radar terminó hace más de ${HORAS_RETRASO_RADAR} h.`,
+    };
+  }
+  return { ...base, salud: 'ok', mensaje: 'El radar funciona con normalidad.' };
 }
 
 export const estado = new Hono<Contexto>();
@@ -258,6 +329,44 @@ function lista(titulo: string, elementos: readonly string[], total: number): str
     .join('')}</ul>${resto}</section>`;
 }
 
+/** Lo que cuenta el radar de su última ejecución (lo guarda en su resumen). */
+function tablaDelRadar(e: Ejecucion | null, radar: EstadoRadar, ahora: Date): string {
+  if (!e) return '<p class="suave">Ninguna ejecución todavía.</p>';
+  const resumen = e.resumen ?? {};
+  const cifra = (valor: unknown) => (typeof valor === 'number' ? numero(valor) : null);
+  const candidatos = resumen.candidatos as { vigilando?: unknown } | undefined;
+  const d1 = resumen.d1 as { filas_escritas?: unknown } | undefined;
+  const filas: [string, string | null][] = [
+    ['Estado', ESTADOS_DE_EJECUCION[e.estado]],
+    ['Empezó', fecha(e.inicio, ahora)],
+    ['Duración', duracion(e.duracion_s)],
+    ['Repos vigilados', cifra(resumen.seguidos)],
+    ['En auge ahora', radar.en_auge === null ? null : numero(radar.en_auge)],
+    ['Candidatos nuevos en vigilancia', cifra(candidatos?.vigilando)],
+    ['Posibles copias por revisar', numero(radar.alertas_pendientes)],
+    ['Errores', String(e.errores.length)],
+    ['Filas escritas en D1', cifra(d1?.filas_escritas)],
+  ];
+  if (e.enlace?.startsWith('https://github.com/')) {
+    filas.push(['En GitHub', `<a href="${escapar(e.enlace)}">ver la ejecución</a>`]);
+  }
+  return `<table>${filas
+    .filter((fila): fila is [string, string] => fila[1] !== null)
+    .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`)
+    .join('')}</table>`;
+}
+
+function seccionDelRadar(radar: EstadoRadar, ahora: Date): string {
+  const ultima = radar.ultima_ejecucion;
+  return `<h1 class="otra">Radar horario</h1>
+  <p class="suave">Cada hora busca lo que se está haciendo viral y prepara las posibles copias falsas para que una persona las revise.</p>
+  <div class="salud ${radar.salud}"><span class="punto"></span>${ETIQUETAS[radar.salud]}</div>
+  <p>${escapar(radar.mensaje)}</p>
+  <section><h2>Última ejecución</h2>${tablaDelRadar(ultima, radar, ahora)}</section>
+  ${ultima ? lista('Errores del radar', ultima.errores, ultima.errores.length) : ''}
+  ${radar.ultima_correcta && radar.ultima_correcta.id !== ultima?.id ? `<section><h2>Última ejecución correcta</h2>${tablaDelRadar(radar.ultima_correcta, radar, ahora)}</section>` : ''}`;
+}
+
 export function paginaDeEstado(datos: EstadoRobot): string {
   const ahora = new Date(datos.comprobado);
   const ultima = datos.ultima_ejecucion;
@@ -275,7 +384,7 @@ export function paginaDeEstado(datos: EstadoRobot): string {
   @media (prefers-color-scheme: light) { :root { --fondo: #fbfbfc; --texto: #14171c; --suave: #5b6472; --borde: #e3e6ea; } }
   body { margin: 0; background: var(--fondo); color: var(--texto); line-height: 1.5; }
   main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; } h2 { font-size: 1.05rem; margin: 28px 0 8px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; } h1.otra { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--borde); } h2 { font-size: 1.05rem; margin: 28px 0 8px; }
   .suave { color: var(--suave); } .salud { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px;
     border: 1px solid var(--borde); border-radius: 999px; font-weight: 600; margin: 16px 0 4px; }
   .punto { width: 10px; height: 10px; border-radius: 50%; background: var(--suave); }
@@ -297,6 +406,7 @@ export function paginaDeEstado(datos: EstadoRobot): string {
   ${ultima ? lista('Errores', ultima.errores, ultima.errores.length) : ''}
   ${ultima ? lista('Avisos', ultima.primeros_avisos, ultima.avisos) : ''}
   ${datos.ultima_correcta && datos.ultima_correcta.id !== ultima?.id ? tablaDeEjecucion('Última ejecución correcta', datos.ultima_correcta, ahora) : ''}
+  ${seccionDelRadar(datos.radar, ahora)}
   <p class="suave">Comprobado: ${fecha(datos.comprobado, ahora)} · <a href="/api/v1/estado">versión JSON</a></p>
 </main>
 </body>

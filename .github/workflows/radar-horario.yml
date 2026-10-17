@@ -1,0 +1,70 @@
+name: Radar horario
+
+# Cada hora: busca lo que se está haciendo viral (GH Archive, la búsqueda de GitHub y las estrellas
+# de todo el catálogo), calcula lo que está «en auge» y prepara las posibles copias falsas para que
+# una persona las revise. Lo guarda en D1 a través del Worker; no escribe nada en el repositorio.
+#
+# Avisos si falla: el radar apunta cada fallo en /estado. Si falla dos veces seguidas, el workflow
+# falla y GitHub manda un correo (a quien mantiene el repo).
+
+on:
+  schedule:
+    # A los :23 de cada hora: lejos de las horas en punto, cuando GitHub va más cargado.
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# El mismo grupo que el robot diario: nunca van a la vez, para no sumar sus peticiones a GitHub.
+concurrency:
+  group: robot-github
+  cancel-in-progress: false
+
+jobs:
+  radar:
+    name: Radar de la hora
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Instala la versión de pnpm del campo «packageManager» de package.json.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      # Solo el robot y lo que necesita (sin wrangler ni la web).
+      - run: pnpm install --frozen-lockfile --filter "@aop/jobs..."
+      - name: Radar
+        run: pnpm radar
+        env:
+          # Token personal de solo lectura (el mismo que el robot diario); si falta, el de Actions.
+          ROBOT_TOKEN: ${{ secrets.ROBOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      # Si el radar no ha llegado a apuntar su fallo (por ejemplo, porque no se ha podido instalar),
+      # se apunta aquí para que salga en /estado.
+      - name: Apuntar el fallo en /estado
+        if: failure()
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+        run: |
+          ID="gh-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          YA=$(curl -fsS -m 30 "$WORKER_URL/api/v1/estado" \
+            | jq -r --arg id "$ID" '.radar.ultima_ejecucion | select(.id == $id and .estado == "error") | .id' \
+            || true)
+          if [ -n "$YA" ]; then echo 'El radar ya apuntó su fallo.'; exit 0; fi
+          AHORA=$(date -u +%FT%TZ)
+          ENLACE="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          jq -n --arg id "$ID" --arg ahora "$AHORA" --arg enlace "$ENLACE" \
+            '{id: $id, tipo: "radar", estado: "error", inicio: $ahora, fin: $ahora, enlace: $enlace,
+              errores: ["El workflow ha fallado antes de terminar: mira la ejecución en GitHub"]}' \
+            | curl -fsS -m 30 -X POST "$WORKER_URL/ingest/ejecucion" \
+                -H "Authorization: Bearer $INGEST_KEY" -H 'content-type: application/json' \
+                --data-binary @- \
+            || echo 'No se ha podido apuntar el fallo en el Worker.'

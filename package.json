@@ -15,7 +15,8 @@
     "test": "pnpm -r --if-present run test",
     "build": "pnpm -r --if-present run build",
     "semilla": "pnpm --filter @aop/jobs run semilla",
-    "diario": "pnpm --filter @aop/jobs run diario"
+    "diario": "pnpm --filter @aop/jobs run diario",
+    "radar": "pnpm --filter @aop/jobs run radar"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

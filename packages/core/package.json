@@ -6,7 +6,8 @@
   "description": "Lógica pura del dominio: estado, licencias, instaladores, temas y esquemas de los datos.",
   "license": "AGPL-3.0-only",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./copias": "./src/copias.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

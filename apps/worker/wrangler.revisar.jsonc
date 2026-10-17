@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Worker de la página de revisión de alertas: all-open-project-revisar.<subdominio>.workers.dev.
+  // Va aparte del Worker público para protegerlo entero con Cloudflare Access (pestaña «Access»
+  // del Worker en el panel de Cloudflare → «All traffic»). Sin Access, la página no abre.
+  "name": "all-open-project-revisar",
+  "main": "src/revisar-worker.ts",
+  "compatibility_date": "2026-10-12",
+  "observability": { "enabled": true },
+  // Sin direcciones de vista previa: solo la de producción, la que protege Access.
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "all-open-project",
+      "database_id": "72b47222-ec73-4b83-8009-ffc7a1134e28",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Solo para «wrangler dev»: simula a alguien que ya ha pasado por Access. No afecta al despliegue.
+  "access": {
+    "dev": { "aud": "revision-en-local", "identity": { "email": "revisor@example.com" } }
+  }
+  // REVISORES es un secreto: «wrangler secret put REVISORES -c wrangler.revisar.jsonc».
+}

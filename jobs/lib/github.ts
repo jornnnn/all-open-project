@@ -865,3 +865,300 @@ export async function obtenerArbol(
     truncado: arbol.truncated,
   };
 }
+
+// --- Radar horario ----------------------------------------------------------------------------
+
+/** Lo que el radar necesita de un repo que aún no está en el catálogo. */
+const CAMPOS_RADAR = `
+  databaseId
+  ${CAMPOS_REPO}`;
+
+type NodoRadar = NodoRepo & { databaseId: number };
+
+/** Un repo visto por el radar: los datos de siempre más su id de GitHub. */
+export interface RepoRadar extends RepoGithub {
+  id: number;
+}
+
+function leerRepoRadar(nodo: NodoRadar): RepoRadar {
+  const base = leerRepo(nodo);
+  return {
+    ...base,
+    creado: enUtc(base.creado),
+    ultimoPush: base.ultimoPush === null ? null : enUtc(base.ultimoPush),
+    id: nodo.databaseId,
+  };
+}
+
+/**
+ * Búsqueda de repos para el radar, página a página (50 por página: con más, GitHub puede pasar de
+ * sus 10 s). Devuelve como mucho `maximo` repos, en el orden de la búsqueda.
+ */
+export async function buscarParaRadar(
+  cliente: ClienteGithub,
+  consulta: string,
+  maximo: number,
+): Promise<{ total: number; repos: RepoRadar[] }> {
+  const query = `query($q: String!, $despues: String) {
+  search(type: REPOSITORY, query: $q, first: 50, after: $despues) {
+    repositoryCount
+    pageInfo { hasNextPage endCursor }
+    nodes { ... on Repository { ${CAMPOS_RADAR} } }
+  }
+}`;
+  interface Pagina {
+    search: {
+      repositoryCount: number;
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      nodes: (NodoRadar | Record<string, never>)[];
+    };
+  }
+  const repos: RepoRadar[] = [];
+  let total = 0;
+  let despues: string | null = null;
+  while (repos.length < maximo) {
+    const datos: Pagina = await cliente.graphql<Pagina>(query, { q: consulta, despues });
+    total = datos.search.repositoryCount;
+    const nodos = datos.search.nodes.filter((n): n is NodoRadar => 'nameWithOwner' in n);
+    repos.push(...nodos.map(leerRepoRadar));
+    if (!datos.search.pageInfo.hasNextPage || !datos.search.pageInfo.endCursor) break;
+    despues = datos.search.pageInfo.endCursor;
+  }
+  return { total, repos: repos.slice(0, maximo) };
+}
+
+/** Datos de repos por nombre para el radar. Los que no existen vuelven como null. */
+export async function obtenerReposRadar(
+  cliente: ClienteGithub,
+  nombres: readonly string[],
+): Promise<Map<string, RepoRadar | null>> {
+  const resultados = new Map<string, RepoRadar | null>();
+  for (const trozo of trocear([...new Set(nombres)], REPOS_POR_PETICION)) {
+    await conDivision(
+      trozo,
+      async (grupo) => {
+        const { query, variables } = consultaPorNombre(grupo, CAMPOS_RADAR);
+        const datos = await cliente.graphql<Record<string, NodoRadar | null>>(query, variables, {
+          permitirNoEncontrados: true,
+          reintentos: grupo.length > 1 ? 1 : 5,
+        });
+        grupo.forEach((nombre, i) => {
+          const nodo = datos[`r${i}`];
+          resultados.set(nombre, nodo ? leerRepoRadar(nodo) : null);
+        });
+      },
+      () => {},
+    );
+  }
+  return resultados;
+}
+
+/** Estrellas de un repo en este momento. */
+export interface EstrellasActuales {
+  id: number;
+  /** propietario/repo actual (cambia si lo renombran). */
+  repo: string;
+  estrellas: number;
+  archivado: boolean;
+}
+
+/** Repos por consulta al leer solo las estrellas: medido el 17-oct-2026, 100 tardan ~2,8 s (1 punto). */
+const ESTRELLAS_POR_PETICION = 100;
+
+/**
+ * Estrellas actuales de muchos repos por su nombre. Los que no existen vuelven como null; los que
+ * GitHub no sirve ni pidiéndolos solos van a `fallidos` (el radar sigue sin ellos).
+ */
+export async function obtenerEstrellas(
+  cliente: ClienteGithub,
+  nombres: readonly string[],
+  {
+    concurrencia = 2,
+    alProgresar,
+  }: { concurrencia?: number; alProgresar?: (hechos: number) => void } = {},
+): Promise<{ estrellas: Map<string, EstrellasActuales | null>; fallidos: Set<string> }> {
+  const estrellas = new Map<string, EstrellasActuales | null>();
+  const fallidos = new Set<string>();
+  interface Nodo {
+    databaseId: number;
+    nameWithOwner: string;
+    stargazerCount: number;
+    isArchived: boolean;
+  }
+  await enParalelo(
+    trocear([...new Set(nombres)], ESTRELLAS_POR_PETICION),
+    concurrencia,
+    async (trozo) => {
+      await conDivision(
+        trozo,
+        async (grupo) => {
+          const { query, variables } = consultaPorNombre(
+            grupo,
+            'databaseId nameWithOwner stargazerCount isArchived',
+          );
+          const datos = await cliente.graphql<Record<string, Nodo | null>>(query, variables, {
+            permitirNoEncontrados: true,
+            reintentos: grupo.length > 1 ? 1 : 5,
+          });
+          grupo.forEach((nombre, i) => {
+            const nodo = datos[`r${i}`];
+            estrellas.set(
+              nombre,
+              nodo
+                ? {
+                    id: nodo.databaseId,
+                    repo: nodo.nameWithOwner,
+                    estrellas: nodo.stargazerCount,
+                    archivado: nodo.isArchived,
+                  }
+                : null,
+            );
+          });
+        },
+        (nombre) => fallidos.add(nombre),
+      );
+      alProgresar?.(estrellas.size + fallidos.size);
+    },
+  );
+  return { estrellas, fallidos };
+}
+
+/** Estrellas que ganó un repo un día (calendario de GitHub). */
+export interface DiaDelHistorial {
+  dia: string;
+  estrellas: number;
+}
+
+/**
+ * Historial oficial de estrellas por día (GET /repos/{o}/{r}/stargazers/history, septiembre de
+ * 2026). Va por semanas, de la más reciente a la más antigua, cada una con sus 7 días desde el
+ * domingo; el campo `week` es la fecha de ese domingo a las 00:00 UTC. Los días son del calendario
+ * de GitHub, que no coincide con UTC (ver diaDeGithub). Devuelve null si el repo no existe.
+ */
+export async function obtenerHistorialDeEstrellas(
+  cliente: ClienteGithub,
+  repo: string,
+  semanas = 3,
+): Promise<DiaDelHistorial[] | null> {
+  const datos = await cliente.rest<{ week: number; total: number; days: number[] }[]>(
+    `/repos/${repo}/stargazers/history?per_page=${semanas}`,
+  );
+  if (!datos) return null;
+  return datos
+    .flatMap((semana) =>
+      semana.days.map((estrellas, i) => ({
+        dia: new Date((semana.week + i * 86_400) * 1000).toISOString().slice(0, 10),
+        estrellas,
+      })),
+    )
+    .sort((a, b) => (a.dia < b.dia ? -1 : a.dia > b.dia ? 1 : 0));
+}
+
+/**
+ * Día en el calendario del historial de estrellas de GitHub. Medido el 17-oct-2026: el día de hoy
+ * se ponía a cero hacia las 07:00 UTC, la medianoche de la costa oeste de EE. UU. (hora del Pacífico).
+ */
+export function diaDeGithub(momento: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(momento);
+}
+
+/**
+ * Momento en que empieza un día del calendario de GitHub (medianoche en la costa oeste de EE. UU.,
+ * a las 07:00 o a las 08:00 UTC según el horario de verano).
+ */
+export function inicioDelDiaDeGithub(dia: string): Date {
+  for (const desfase of ['-07:00', '-08:00']) {
+    const inicio = new Date(`${dia}T00:00:00${desfase}`);
+    if (diaDeGithub(inicio) === dia && diaDeGithub(new Date(inicio.getTime() - 1)) !== dia) {
+      return inicio;
+    }
+  }
+  throw new Error(`No se sabe cuándo empieza el día ${dia} de GitHub`);
+}
+
+/** Lo que hace falta para decidir si un repo es una posible copia. */
+const CAMPOS_COPIA = `
+  databaseId
+  nameWithOwner
+  description
+  createdAt
+  stargazerCount
+  isFork
+  defaultBranchRef { target { ... on Commit { history { totalCount } } } }
+  latestRelease { releaseAssets(first: 30) { nodes { name downloadCount } } }
+  raiz: object(expression: "HEAD:") { ... on Tree { entries { name type } } }`;
+
+export interface DetallesCopia {
+  id: number;
+  repo: string;
+  descripcion: string | null;
+  creado: string;
+  estrellas: number;
+  esFork: boolean;
+  /** Commits de la rama principal (0 si no tiene rama). */
+  commits: number;
+  /** Archivos de su última versión, con sus descargas. */
+  version: { nombre: string; descargas: number }[];
+  /** Archivos sueltos de la raíz del repo. */
+  raiz: string[];
+}
+
+/** Detalles de posibles copias por nombre, de 10 en 10 (contar los commits es lento). */
+export async function obtenerDetallesCopia(
+  cliente: ClienteGithub,
+  nombres: readonly string[],
+): Promise<Map<string, DetallesCopia | null>> {
+  interface Nodo {
+    databaseId: number;
+    nameWithOwner: string;
+    description: string | null;
+    createdAt: string;
+    stargazerCount: number;
+    isFork: boolean;
+    defaultBranchRef: { target: { history?: { totalCount: number } } | null } | null;
+    latestRelease: { releaseAssets: { nodes: { name: string; downloadCount: number }[] } } | null;
+    raiz: { entries?: { name: string; type: string }[] } | null;
+  }
+  const resultados = new Map<string, DetallesCopia | null>();
+  for (const trozo of trocear([...new Set(nombres)], 10)) {
+    await conDivision(
+      trozo,
+      async (grupo) => {
+        const { query, variables } = consultaPorNombre(grupo, CAMPOS_COPIA);
+        const datos = await cliente.graphql<Record<string, Nodo | null>>(query, variables, {
+          permitirNoEncontrados: true,
+          reintentos: grupo.length > 1 ? 1 : 3,
+        });
+        grupo.forEach((nombre, i) => {
+          const n = datos[`r${i}`];
+          resultados.set(
+            nombre,
+            n
+              ? {
+                  id: n.databaseId,
+                  repo: n.nameWithOwner,
+                  descripcion: n.description,
+                  creado: enUtc(n.createdAt),
+                  estrellas: n.stargazerCount,
+                  esFork: n.isFork,
+                  commits: n.defaultBranchRef?.target?.history?.totalCount ?? 0,
+                  version: (n.latestRelease?.releaseAssets.nodes ?? []).map((a) => ({
+                    nombre: a.name,
+                    descargas: a.downloadCount,
+                  })),
+                  raiz: (n.raiz?.entries ?? []).filter((e) => e.type === 'blob').map((e) => e.name),
+                }
+              : null,
+          );
+        });
+      },
+      () => {},
+    );
+  }
+  return resultados;
+}

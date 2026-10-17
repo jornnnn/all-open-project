@@ -13,8 +13,9 @@ on:
 permissions:
   contents: write
 
+# El mismo grupo que el radar horario: nunca van a la vez, para no sumar sus peticiones a GitHub.
 concurrency:
-  group: robot-diario
+  group: robot-github
   cancel-in-progress: false
 
 jobs:

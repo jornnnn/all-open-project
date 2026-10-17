@@ -21,6 +21,7 @@ import { z } from 'zod';
 import { leerAnterior, leTocaHoy, licenciaReutilizable } from './lib/anterior.ts';
 import { construirCatalogo, type EntradaSemilla, licenciasPorRevisar } from './lib/catalogo.ts';
 import { cargarDatos, DIR_DATOS } from './lib/datos.ts';
+import { entradasDelRadar } from './lib/entradas.ts';
 import { escribirExportacion } from './lib/exportar.ts';
 import {
   crearCliente,
@@ -127,9 +128,14 @@ async function ejecutar(): Promise<{
   // 1. Datos de partida.
   const { taxonomia, editorial } = await cargarDatos();
   const semilla = await leerSemilla();
-  const limite = opciones.limite === undefined ? semilla.length : Number(opciones.limite);
-  const entradas = semilla.slice(0, limite);
-  console.log(`Semilla: ${entradas.length} proyectos (${fecha}, ejecución ${id})`);
+  // Los proyectos nuevos que propuso el radar y aceptó una persona entran con origen «radar».
+  const delRadar = worker ? entradasDelRadar(semilla, await worker.aceptados()) : [];
+  const todas = [...semilla, ...delRadar];
+  const limite = opciones.limite === undefined ? todas.length : Number(opciones.limite);
+  const entradas = todas.slice(0, limite);
+  console.log(
+    `Semilla: ${entradas.length} proyectos, ${delRadar.length} del radar (${fecha}, ejecución ${id})`,
+  );
 
   // 2. GitHub.
   // Ritmo medido el 17-oct-2026: con el token de Actions, GitHub frenó a 75, 60, 48 y 38 s de

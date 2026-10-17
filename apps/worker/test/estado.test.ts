@@ -135,3 +135,57 @@ describe('Rutas', () => {
     expect(env.DB).toBeDefined();
   });
 });
+
+describe('Radar en /estado', () => {
+  async function radar(datos: Record<string, unknown>) {
+    const respuesta = await pedir('/ingest/ejecucion', { cuerpo: { tipo: 'radar', ...datos } });
+    expect(respuesta.status).toBe(200);
+  }
+
+  it('sin ejecuciones del radar lo dice, sin tocar la salud del robot diario', async () => {
+    await ejecucion({ id: 'a', estado: 'ok', inicio: haceHoras(2), fin: haceHoras(1.9) });
+    const datos = await estado();
+    expect(datos.salud).toBe('ok');
+    expect(datos.radar).toMatchObject({ salud: 'sin-datos', alertas_pendientes: 0, en_auge: null });
+  });
+
+  it('va con retraso si no ha ido bien en las últimas 3 horas, y con error si falló', async () => {
+    await radar({ id: 'r1', estado: 'ok', inicio: haceHoras(0.5), fin: haceHoras(0.45) });
+    expect((await estado()).radar.salud).toBe('ok');
+    await vaciarTablas();
+    await radar({ id: 'r2', estado: 'ok', inicio: haceHoras(4), fin: haceHoras(3.9) });
+    expect((await estado()).radar.salud).toBe('atrasado');
+    await radar({
+      id: 'r3',
+      estado: 'error',
+      inicio: haceHoras(1),
+      fin: haceHoras(0.9),
+      errores: ['GH Archive no responde'],
+    });
+    const datos = await estado();
+    expect(datos.radar.salud).toBe('error');
+    expect(datos.radar.mensaje).toContain('GH Archive no responde');
+    // El robot diario no se entera: sigue sin datos.
+    expect(datos.salud).toBe('sin-datos');
+  });
+
+  it('cuenta las alertas pendientes y lo que está en auge, y lo enseña en la página', async () => {
+    await radar({
+      id: 'r1',
+      estado: 'ok',
+      inicio: haceHoras(0.5),
+      fin: haceHoras(0.45),
+      resumen: { seguidos: 3412, candidatos: { vigilando: 250 }, d1: { filas_escritas: 31 } },
+    });
+    await pedir('/ingest/radar/guardar', {
+      cuerpo: { radar: { tendencias: { en_auge: [{ repo: 'a/b' }, { repo: 'c/d' }], suben: [] } } },
+    });
+    const datos = await estado();
+    expect(datos.radar).toMatchObject({ salud: 'ok', en_auge: 2, alertas_pendientes: 0 });
+    const html = await (await pedir('/estado', { clave: null })).text();
+    expect(html).toContain('Radar horario');
+    expect(html).toContain('3412');
+    expect(html).toContain('En auge ahora');
+    expect(html).toContain('Posibles copias por revisar');
+  });
+});

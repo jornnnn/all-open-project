@@ -84,6 +84,8 @@ export async function vaciarTablas() {
       'runs',
       'hourly',
       'candidates',
+      'radar',
+      'auge',
       'ingesta_lotes',
     ].map((tabla) => env.DB.prepare(`DELETE FROM ${tabla}`)),
   );

@@ -18,7 +18,7 @@ Search results exclude:
 - forks and archived repositories;
 - repositories with fewer than 150 stars;
 - repositories with no changes in more than 12 months;
-- repositories created less than 90 days ago: new projects are tracked by the radar and join once they settle;
+- repositories created less than 90 days ago: new projects are tracked by the radar and join once they settle (see "New projects");
 - lists, courses and repositories without code, which will get their own "learning" section;
 - projects excluded by hand, always with a reason (for example, tools that activate software without a license).
 
@@ -95,6 +95,53 @@ Each subtopic has its own GitHub topics, and each topic belongs to a single subt
 
 We discard topics that mix unrelated things. For example, `matrix` is also used for maths matrices, and `office` is used by tools that activate Office without a license.
 
+## Radar: what is going viral
+
+Every hour, at :23 (UTC), a robot (GitHub Actions) looks for what is going viral:
+
+1. **Hints.** It reads the previous hour of [GH Archive](https://www.gharchive.org), which keeps a sample of public GitHub activity, and notes the repositories with 2 or more stars in that sample. It is only a hint: in October 2026 GH Archive captured about 2% of stars, so we never use it to count.
+2. **Search.** It asks the GitHub search API for the repositories created in the last 2, 7 and 30 days with the most stars.
+3. **Tracking.** It reads the stars of the whole catalog and of the new projects it is watching, and keeps one snapshot per hour for 14 days.
+
+### Trending
+
+A project is **trending** when it gains at least 100 stars in 24 hours and more than 5 times its usual pace.
+
+- **Stars gained in 24 hours:** the difference between the stars now and those in the first snapshot of the last 24 hours. If a snapshot is missing, we count from the next one: the figure may fall short, but it never overstates. A project created less than 24 hours ago counts from zero.
+- **Usual pace:** the average stars per day over the 7 full days before yesterday, from [GitHub's official star history](https://docs.github.com/rest/activity/starring). Neither yesterday nor today count, so a take-off does not raise its own bar. If the project is younger, the days it has count (without the day it was created, which is incomplete); if it has none, its pace is 0.
+- So that it does not go in and out every hour, a project stays trending until it drops below 80% of what it needed to get in.
+- Projects with a possible-copy alert, and new projects named like one of the most popular ones, stay out of trends until a person reviews them.
+
+Since July 2026 GitHub no longer shows when each person starred a repository, so hourly figures come from our hourly snapshots and daily figures from GitHub's official history. Trends are published at [`/api/v1/tendencias`](https://all-open-project.jornnnn.workers.dev/api/v1/tendencias) with all their figures (which snapshot they are measured from and its stars), so anyone can check them.
+
+## New projects: how they join the catalog
+
+The radar tracks the new projects it finds every hour. Once a day it decides what happens to each one, using GitHub's official star history:
+
+- **It is proposed** for the catalog when it meets all of this:
+  - at least **500 stars**;
+  - **7 full days in a row gaining at least 10 stars** each day (not counting the day it was created);
+  - at least 1 fork per 100 stars: bought stars rarely come with forks;
+  - its topics fit a subtopic of the taxonomy;
+  - it is not named like one of the 500 most popular projects, unless a person has checked it is not a copy.
+- **It joins** when a person confirms it in the review, because a rule cannot judge whether a project is useful or uses other people's services without permission. The daily robot picks it up that night, with origin `radar`.
+- **It is dropped** if it is a fork, archived, a list or a course, has no code or is excluded by hand; if it has not met the rule in 30 days; or if, after a week of tracking, it gains fewer than 10 stars in 3 days in a row.
+
+Projects older than 90 days also join through the initial list, with its own rules.
+
+## Possible fake copies
+
+We watch the 500 most popular projects in the catalog. A repository goes to the review queue if it meets **all** of this:
+
+1. **Its name is almost the same** as one of them: the same name, the name plus a typical copy suffix or prefix (`-desktop`, `-windows`, `free-`, `-crack`, `-installer`…) or with one letter changed. Generic names (`core`, `docs`…) and language or platform names (`node`, `linux`, `python`…) do not count.
+2. **It is recent:** created 90 days ago or less.
+3. **It has few changes:** 30 commits or fewer on its main branch.
+4. And also, **its stars jump** (50 or more in 24 hours, or an average of 20 a day since it was created, with at least 100) **or it offers downloads the original does not** (an installer for a system the original does not support, or files to download when the original publishes none).
+
+Forks, repositories without code or downloads (notes, lists) and repositories hardly anyone sees (fewer than 20 stars and 100 downloads) do not go to the queue.
+
+**No alert is published without a person reviewing it.** Each alert keeps its evidence, all taken from GitHub: names, dates, commits, stars and files. A person compares both repositories and decides. If it is not a copy, that repository will not be flagged again.
+
 ## Coming soon
 
-The detection of possible fake copies (always reviewed by a person before publishing), trends and the explanatory texts will be documented here once they are live.
+The explanatory texts will be documented here once they are live.

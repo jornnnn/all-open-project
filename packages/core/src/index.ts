@@ -1,4 +1,6 @@
+export * from './candidatos.ts';
 export * from './catalogo.ts';
+export * from './copias.ts';
 export * from './datos.ts';
 export * from './estado.ts';
 export * from './instaladores.ts';
@@ -8,4 +10,5 @@ export * from './licencias-texto.ts';
 export * from './listas.ts';
 export * from './puntuacion.ts';
 export * from './temas.ts';
+export * from './tendencias.ts';
 export * from './tipos.ts';
