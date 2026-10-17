@@ -1,8 +1,10 @@
 // Recibe los datos del robot. Todo va protegido con INGEST_KEY.
 //
 // El plan gratuito da 10 ms de CPU por petición y 50 consultas a D1. Por eso el Worker no lee el
-// JSON: pasa el texto tal cual a D1 y SQLite lo recorre con json_each, escribiendo todas las filas
-// en una sola consulta. Cada petición hace como mucho 4 consultas, lleve 10 proyectos o 3.000.
+// JSON: lo pasa tal cual a D1 y SQLite lo recorre con json_each, escribiendo todas las filas en una
+// sola consulta. El lote viaja a D1 una sola vez (se guarda un momento en ingesta_lotes y las
+// demás consultas lo leen de ahí): enviarlo una vez por consulta costaba 24-36 ms de CPU por lote.
+// Cada petición hace como mucho 6 consultas, lleve 10 proyectos o 3.000.
 
 import { Hono } from 'hono';
 import { bearerAuth } from 'hono/bearer-auth';
@@ -15,14 +17,21 @@ export const MAXIMO_CUERPO = 4 * 1024 * 1024;
 /** Si una baja de proyectos afecta a más de esta parte del catálogo, se para por si es un error. */
 export const MAXIMO_BAJAS = 0.1;
 
+/** Guarda el lote recibido (?1 es su id y ?2 el JSON). */
+export const SQL_GUARDAR_LOTE = 'INSERT INTO ingesta_lotes (id, datos) VALUES (?1, ?2)';
+/** Borra el lote al terminar la petición. */
+export const SQL_BORRAR_LOTE = 'DELETE FROM ingesta_lotes WHERE id = ?1';
+/** Los proyectos del lote guardado, uno por fila (en `value`). */
+const PROYECTOS_DEL_LOTE = 'json_each((SELECT datos FROM ingesta_lotes WHERE id = ?1))';
+
 /**
  * Libera el nombre de proyectos dados de baja si otro repo lo usa ahora (lo borraron y crearon otro
  * con el mismo nombre). Solo escribe si pasa.
  */
 export const SQL_LIBERAR_NOMBRES = `UPDATE projects SET repo = repo || '#' || id
 WHERE activo = 0
-  AND repo IN (SELECT json_extract(value, '$.repo') FROM json_each(?1))
-  AND id NOT IN (SELECT json_extract(value, '$.id') FROM json_each(?1))`;
+  AND repo IN (SELECT json_extract(value, '$.repo') FROM ${PROYECTOS_DEL_LOTE})
+  AND id NOT IN (SELECT json_extract(value, '$.id') FROM ${PROYECTOS_DEL_LOTE})`;
 
 /**
  * Alta o actualización de todos los proyectos del lote. No toca el nombre (repo) para no reescribir
@@ -53,7 +62,7 @@ SELECT
   json_extract(p, '$.estrellas_por_dia'), json_extract(p, '$.puntuacion'),
   json_extract(p, '$.puntuacion_detalle'), json_extract(p, '$.origen'),
   ?2, ?3
-FROM (SELECT value AS p FROM json_each(?1))
+FROM (SELECT value AS p FROM ${PROYECTOS_DEL_LOTE})
 WHERE true
 ON CONFLICT (id) DO UPDATE SET
   activo = 1,
@@ -77,7 +86,7 @@ ON CONFLICT (id) DO UPDATE SET
 export const SQL_RENOMBRES = `UPDATE projects SET repo = j.repo
 FROM (
   SELECT json_extract(value, '$.id') AS id, json_extract(value, '$.repo') AS repo
-  FROM json_each(?1)
+  FROM ${PROYECTOS_DEL_LOTE}
 ) AS j
 WHERE projects.id = j.id AND projects.repo != j.repo COLLATE BINARY`;
 
@@ -90,7 +99,7 @@ SELECT
   json_extract(value, '$.forks'), json_extract(value, '$.issues_abiertas'),
   json_extract(value, '$.version.descargas'), json_extract(value, '$.puntuacion'),
   json_extract(value, '$.estado')
-FROM json_each(?1)
+FROM ${PROYECTOS_DEL_LOTE}
 WHERE true
 ON CONFLICT (project_id, fecha) DO UPDATE SET
   estrellas = excluded.estrellas, forks = excluded.forks,
@@ -189,13 +198,16 @@ ingesta.post('/proyectos', async (c) => {
   if (!fecha || !FECHA.test(fecha)) {
     return c.json({ error: 'Falta la fecha de la foto (?fecha=AAAA-MM-DD)' }, 400);
   }
-  const cuerpo = await c.req.text();
   const db = c.env.DB;
+  const lote = crypto.randomUUID();
+  // Todo en una transacción: si algo falla, no queda nada a medias (ni el lote guardado).
   const resultados = await db.batch([
-    db.prepare(SQL_LIBERAR_NOMBRES).bind(cuerpo),
-    db.prepare(SQL_PROYECTOS).bind(cuerpo, fecha, new Date().toISOString()),
-    db.prepare(SQL_RENOMBRES).bind(cuerpo),
-    db.prepare(SQL_FOTOS).bind(cuerpo, fecha),
+    db.prepare(SQL_GUARDAR_LOTE).bind(lote, await c.req.text()),
+    db.prepare(SQL_LIBERAR_NOMBRES).bind(lote),
+    db.prepare(SQL_PROYECTOS).bind(lote, fecha, new Date().toISOString()),
+    db.prepare(SQL_RENOMBRES).bind(lote),
+    db.prepare(SQL_FOTOS).bind(lote, fecha),
+    db.prepare(SQL_BORRAR_LOTE).bind(lote),
   ]);
   // Sin contar proyectos con meta.changes: D1 suma ahí lo que escriben los disparadores del buscador.
   return c.json({ ok: true, ...medir(resultados) });

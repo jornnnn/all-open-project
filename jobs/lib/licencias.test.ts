@@ -42,6 +42,7 @@ interface RepoFalso {
 function githubFalso(repos: Record<string, RepoFalso>): ClienteGithub {
   return {
     restantes: () => 5000,
+    frenos: () => ({ veces: 0, presupuestoPorMinutoMs: null }),
     async rest<T>(ruta: string) {
       const nombre = ruta.match(/^\/repos\/([^/]+\/[^/]+)\//)?.[1] ?? '';
       const arbol = repos[nombre]?.arbol;

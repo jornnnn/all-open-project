@@ -21,7 +21,7 @@ El robot diario lo reescribe cada noche (03:17 UTC) y lo publica con un commit, 
 |---|---|
 | `id` | Identificador numérico de GitHub (no cambia aunque renombren el repo) |
 | `repo` | `propietario/repo`, como se llama hoy en GitHub |
-| `descripcion`, `web`, `lenguaje`, `topics` | Lo que dice GitHub |
+| `descripcion`, `web`, `lenguaje`, `topics` | Lo que dice GitHub. Los *topics* se renuevan una vez por semana por proyecto, por turnos |
 | `temas`, `area`, `publico` | Subtemas de `taxonomia.yaml` (el primero es el principal), su área y si es para usar (`usar`) o para programar (`programar`) |
 | `estrellas`, `forks`, `issues_abiertas`, `issues_cerradas` | Cifras de GitHub en el momento de leerlas (las *issues* son `null` si el repo las tiene desactivadas) |
 | `creado`, `ultimo_push`, `ultimo_cambio` | Fechas en UTC. `ultimo_cambio` es el último *commit* de la rama principal |

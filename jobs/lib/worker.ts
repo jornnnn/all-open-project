@@ -4,10 +4,11 @@ import type { ProyectoCatalogo } from '@aop/core';
 import type { Referencia } from './catalogo.ts';
 
 /**
- * Tamaño máximo de cada envío de proyectos. D1 admite hasta 2 MB por valor y el Worker 4 MB por
- * petición; con lotes pequeños, cada petición gasta poca CPU del Worker (10 ms en el plan gratuito).
+ * Tamaño máximo de cada envío de proyectos. El plan gratuito da al Worker 10 ms de CPU por
+ * petición; medido el 17-oct-2026 en Cloudflare: 8-9 ms con lotes de 450 KB, 3-4 ms con 250 KB y
+ * 1-2 ms con 150 KB. Con 200 KB queda margen aunque el Worker arranque en frío.
  */
-export const LOTE_MAXIMO_BYTES = 450_000;
+export const LOTE_MAXIMO_BYTES = 200_000;
 
 export interface DatosEjecucion {
   id: string;

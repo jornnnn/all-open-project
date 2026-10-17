@@ -6,6 +6,7 @@ import {
   obtenerDatosActuales,
   obtenerRepos,
   obtenerReposDiario,
+  obtenerTopics,
 } from './github.ts';
 
 function nodo(nombre: string) {
@@ -52,6 +53,7 @@ function clienteFalso(existentes: Set<string>, maximo: number, siempreFallan = n
   const tamanos: number[] = [];
   const cliente: ClienteGithub = {
     restantes: () => 5000,
+    frenos: () => ({ veces: 0, presupuestoPorMinutoMs: null }),
     rest: async () => null,
     async graphql<T>(_query: string, variables: Record<string, unknown> = {}) {
       const nombres = Object.keys(variables)
@@ -208,6 +210,59 @@ describe('crearCliente', () => {
     const cliente = crearCliente('token', { pausaMs: 0 });
     await expect(cliente.graphql('query', {}, { permitirNoEncontrados: true })).rejects.toThrow(
       ErrorTemporalDeGithub,
+    );
+  });
+
+  it('si GitHub frena, espera lo que pide y baja el ritmo un 20 % para el resto', async () => {
+    const respuestas = [
+      new Response('{"message":"You have exceeded a secondary rate limit"}', {
+        status: 403,
+        headers: { 'retry-after': '0.01' },
+      }),
+      new Response(JSON.stringify({ data: { ok: true } }), { status: 200 }),
+    ];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => respuestas.shift()),
+    );
+    const cliente = crearCliente('token', { pausaMs: 0, presupuestoPorMinutoMs: 60_000 });
+    expect(await cliente.graphql('query')).toEqual({ ok: true });
+    expect(cliente.frenos()).toEqual({ veces: 1, presupuestoPorMinutoMs: 48_000 });
+  });
+});
+
+describe('obtenerTopics', () => {
+  it('devuelve los topics de cada repo y deja fuera los que no existen', async () => {
+    const cliente: ClienteGithub = {
+      restantes: () => 5000,
+      frenos: () => ({ veces: 0, presupuestoPorMinutoMs: null }),
+      rest: async () => null,
+      async graphql<T>(query: string, variables: Record<string, unknown> = {}) {
+        expect(query).toContain('repositoryTopics');
+        expect(query).not.toContain('stargazerCount');
+        const datos = Object.fromEntries(
+          Object.keys(variables)
+            .filter((k) => k.startsWith('o'))
+            .map((k) => {
+              const nombre = `${variables[k]}/${variables[`n${k.slice(1)}`]}`;
+              const topics = nombre === 'o/sin-topics' ? [] : ['cli', 'rust'];
+              return [
+                `r${k.slice(1)}`,
+                nombre === 'o/borrado'
+                  ? null
+                  : { repositoryTopics: { nodes: topics.map((name) => ({ topic: { name } })) } },
+              ];
+            }),
+        );
+        return datos as T;
+      },
+    };
+    const topics = await obtenerTopics(cliente, ['o/a', 'o/sin-topics', 'o/borrado']);
+    expect(topics).toEqual(
+      new Map([
+        ['o/a', ['cli', 'rust']],
+        ['o/sin-topics', []],
+      ]),
     );
   });
 });

@@ -14,7 +14,7 @@ Worker de Cloudflare (Hono + D1). Recibe los datos del robot en `/ingest` y sirv
 Todo `/ingest` exige `Authorization: Bearer <INGEST_KEY>`. La clave es un secreto: en Cloudflare con `wrangler secret put INGEST_KEY` y en local en `.dev.vars` (`INGEST_KEY=…`, no se sube al repo).
 
 ## Límites del plan gratuito
-El Worker no lee el JSON del robot: lo pasa tal cual a D1 y SQLite lo recorre con `json_each`, así que cada petición hace como mucho 4 consultas y gasta poca CPU, lleve 10 proyectos o 2.000. Los tests lo comprueban.
+El Worker no lee el JSON del robot: lo pasa tal cual a D1 una sola vez (se guarda un momento en `ingesta_lotes` y las demás consultas lo leen de ahí) y SQLite lo recorre con `json_each`. Así cada petición hace como mucho 6 consultas, lleve 10 proyectos o 2.000 (los tests lo comprueban), y gasta poca CPU: medido en Cloudflare el 17-oct-2026, 3-4 ms con lotes de 250 KB, cuando el límite es 10 ms. El robot manda lotes de 200 KB.
 
 ## En local
 ```sh

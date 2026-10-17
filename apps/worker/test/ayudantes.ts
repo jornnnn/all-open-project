@@ -76,9 +76,16 @@ export async function pedir(
 
 export async function vaciarTablas() {
   await env.DB.batch(
-    ['snapshots', 'texts', 'alerts', 'projects', 'runs', 'hourly', 'candidates'].map((tabla) =>
-      env.DB.prepare(`DELETE FROM ${tabla}`),
-    ),
+    [
+      'snapshots',
+      'texts',
+      'alerts',
+      'projects',
+      'runs',
+      'hourly',
+      'candidates',
+      'ingesta_lotes',
+    ].map((tabla) => env.DB.prepare(`DELETE FROM ${tabla}`)),
   );
 }
 

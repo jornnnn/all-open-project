@@ -82,6 +82,8 @@ export interface ClienteGithub {
   rest<T>(ruta: string): Promise<T | null>;
   /** Puntos de la API GraphQL que quedan en esta hora, según la última respuesta. */
   restantes(): number | null;
+  /** Veces que GitHub ha frenado al cliente (403 o 429) y el presupuesto con el que sigue. */
+  frenos(): { veces: number; presupuestoPorMinutoMs: number | null };
 }
 
 const dormir = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms));
@@ -97,11 +99,15 @@ function esperaTrasLimite(cabeceras: Headers, intento: number): number {
   return Math.min(60_000, 5000 * 2 ** intento);
 }
 
+/** El presupuesto por minuto nunca baja de aquí, por mucho que frene GitHub. */
+const PRESUPUESTO_MINIMO_MS = 30_000;
+
 export function crearCliente(token: string, opciones: OpcionesCliente = {}): ClienteGithub {
   const pausaMs = opciones.pausaMs ?? 1000;
   const reintentos = opciones.reintentos ?? 5;
-  const presupuesto = opciones.presupuestoPorMinutoMs;
+  let presupuesto = opciones.presupuestoPorMinutoMs;
   let restantes: number | null = null;
+  let frenazos = 0;
 
   // Turnos en fila: aunque haya varias peticiones a la vez, empiezan con pausaMs de separación.
   // Si GitHub frena a una (403 o 429), todas esperan hasta pausaHasta en vez de seguir insistiendo.
@@ -121,11 +127,21 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
       liberar();
     });
   }
-  function frenar(respuesta: Response, intento: number): number {
+  function frenar(respuesta: Response, intento: number, texto = ''): number {
     const ms = esperaTrasLimite(respuesta.headers, intento);
     pausaHasta = Math.max(pausaHasta, Date.now() + ms);
+    frenazos++;
+    // Si GitHub frena aun con presupuesto, el ritmo baja un 20 % para el resto de la ejecución.
+    if (presupuesto !== undefined) {
+      presupuesto = Math.max(PRESUPUESTO_MINIMO_MS, Math.round(presupuesto * 0.8));
+    }
+    const motivo = texto ? ` («${texto.replace(/\s+/g, ' ').slice(0, 120)}»)` : '';
+    const ritmo =
+      presupuesto === undefined
+        ? ''
+        : `; el ritmo baja a ${Math.round(presupuesto / 1000)} s por minuto`;
     console.warn(
-      `\nGitHub respondió ${respuesta.status}; se reintenta en ${Math.round(ms / 1000)} s`,
+      `\nGitHub respondió ${respuesta.status}${motivo}: se reintenta en ${Math.round(ms / 1000)} s${ritmo}`,
     );
     return ms;
   }
@@ -189,7 +205,9 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
         }
         // Un límite frena a todas las peticiones; un fallo del servidor, solo a esta.
         await dormir(
-          limitado ? frenar(respuesta, intento) : esperaTrasLimite(respuesta.headers, intento),
+          limitado
+            ? frenar(respuesta, intento, texto)
+            : esperaTrasLimite(respuesta.headers, intento),
         );
         continue;
       }
@@ -256,7 +274,12 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
     }
   }
 
-  return { graphql, rest, restantes: () => restantes };
+  return {
+    graphql,
+    rest,
+    restantes: () => restantes,
+    frenos: () => ({ veces: frenazos, presupuestoPorMinutoMs: presupuesto ?? null }),
+  };
 }
 
 /** Error de un repo concreto (su alias, «r3») que no existe o está bloqueado: vuelve como null. */
@@ -265,7 +288,7 @@ function esDeUnRepo(error: ErrorGraphql): boolean {
 }
 
 /** Campos de cada repositorio. La fecha del último commit se pide aparte porque es lenta. */
-const CAMPOS_REPO = `
+const CAMPOS_REPO_SIN_TOPICS = `
   nameWithOwner
   description
   homepageUrl
@@ -277,8 +300,10 @@ const CAMPOS_REPO = `
   createdAt
   pushedAt
   primaryLanguage { name }
-  licenseInfo { spdxId }
-  repositoryTopics(first: 20) { nodes { topic { name } } }`;
+  licenseInfo { spdxId }`;
+/** Los topics son lo más caro de pedir: el 40 % del tiempo de la consulta diaria (17-oct-2026). */
+const CAMPO_TOPICS = 'repositoryTopics(first: 20) { nodes { topic { name } } }';
+const CAMPOS_REPO = `${CAMPOS_REPO_SIN_TOPICS}\n  ${CAMPO_TOPICS}`;
 const CAMPO_COMMIT = 'defaultBranchRef { target { ... on Commit { committedDate } } }';
 
 interface NodoRepo {
@@ -294,7 +319,8 @@ interface NodoRepo {
   pushedAt: string | null;
   primaryLanguage: { name: string } | null;
   licenseInfo: { spdxId: string | null } | null;
-  repositoryTopics: { nodes: { topic: { name: string } }[] };
+  /** No viene en la consulta diaria (los topics se piden aparte). */
+  repositoryTopics?: { nodes: { topic: { name: string } }[] };
   defaultBranchRef?: { target: { committedDate?: string } | null } | null;
 }
 
@@ -334,7 +360,7 @@ function leerRepo(nodo: NodoRepo): RepoGithub {
     ultimoCommit: nodo.defaultBranchRef?.target?.committedDate ?? null,
     lenguaje: nodo.primaryLanguage?.name ?? null,
     licencia: nodo.licenseInfo?.spdxId ?? null,
-    topics: nodo.repositoryTopics.nodes.map((n) => n.topic.name),
+    topics: nodo.repositoryTopics?.nodes.map((n) => n.topic.name) ?? [],
   };
 }
 
@@ -508,10 +534,10 @@ export async function obtenerDatosActuales(
 
 // --- Robot diario ----------------------------------------------------------------------------
 
-/** Todo lo que el robot diario guarda de cada proyecto. */
+/** Lo que el robot diario pide cada noche de cada proyecto (los topics van aparte, por turnos). */
 const CAMPOS_DIARIO = `
   databaseId
-  ${CAMPOS_REPO}
+  ${CAMPOS_REPO_SIN_TOPICS}
   isDisabled
   hasIssuesEnabled
   owner { __typename ... on Organization { isVerified } }
@@ -645,6 +671,41 @@ export async function obtenerReposDiario(
     alProgresar?.(repos.size + fallidos.size);
   });
   return { repos, fallidos };
+}
+
+/**
+ * Topics de cada repo por nombre. Los que no existen o fallan incluso solos no aparecen en el
+ * resultado (quien llama se queda con los que ya tenía).
+ */
+export async function obtenerTopics(
+  cliente: ClienteGithub,
+  nombres: readonly string[],
+  concurrencia = 3,
+): Promise<Map<string, string[]>> {
+  const resultado = new Map<string, string[]>();
+  type Nodo = Required<Pick<NodoRepo, 'repositoryTopics'>>;
+  await enParalelo(trocear([...new Set(nombres)], REPOS_POR_PETICION), concurrencia, (trozo) =>
+    conDivision(
+      trozo,
+      async (grupo) => {
+        const { query, variables } = consultaPorNombre(grupo, CAMPO_TOPICS);
+        const datos = await cliente.graphql<Record<string, Nodo | null>>(query, variables, {
+          permitirNoEncontrados: true,
+          reintentos: grupo.length > 1 ? 1 : 5,
+        });
+        grupo.forEach((nombre, i) => {
+          const nodo = datos[`r${i}`];
+          if (nodo)
+            resultado.set(
+              nombre,
+              nodo.repositoryTopics.nodes.map((n) => n.topic.name),
+            );
+        });
+      },
+      () => {},
+    ),
+  );
+  return resultado;
 }
 
 /** Un archivo o carpeta de un repo, en su rama principal. */

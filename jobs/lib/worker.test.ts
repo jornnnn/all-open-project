@@ -67,7 +67,7 @@ describe('crearClienteWorker', () => {
   });
 
   it('envía los proyectos en lotes y suma lo escrito', async () => {
-    const proyecto = { id: 1, repo: 'a/b', descripcion: 'x'.repeat(300_000) }; // uno por lote
+    const proyecto = { id: 1, repo: 'a/b', descripcion: 'x'.repeat(150_000) }; // uno por lote
     const llamadas = servidor([
       json({ ok: true, filas_escritas: 10, filas_leidas: 3 }),
       json({ ok: true, filas_escritas: 7, filas_leidas: 2 }),

@@ -130,9 +130,12 @@ for (const fila of filas) {
   if (problemas.length > 0) fallos++;
   const signo = problemas.length > 0 ? '✗' : '✓';
   const estrellas = `${fila.estrellas} / ${gh.stargazers_count} (${(diferencia * 100).toFixed(2)} %)`;
-  const detalle = [...problemas, ...notas].join('; ');
+  const fechas = `fechas (creado, último cambio${version ? ', versión' : ''})`;
+  const resultado =
+    problemas.length > 0 ? `diferencias: ${problemas.join('; ')}` : `${fechas} iguales`;
+  const despues = notas.length > 0 ? ` (${notas.join('; ')})` : '';
   lineas.push(
-    `${signo} ${fila.repo.padEnd(42)} estrellas ${estrellas.padEnd(28)} creado, último cambio${version ? ' y versión' : ''}: ${problemas.length > 0 ? '' : 'iguales'}${detalle ? ` ${detalle}` : ''}`,
+    `${signo} ${fila.repo.padEnd(42)} estrellas ${estrellas.padEnd(28)} ${resultado}${despues}`,
   );
 }
 console.log(lineas.join('\n'));

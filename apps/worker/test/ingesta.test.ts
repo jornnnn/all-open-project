@@ -2,9 +2,11 @@ import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   SQL_BAJAS,
+  SQL_BORRAR_LOTE,
   SQL_CUENTA_BAJAS,
   SQL_EJECUCION,
   SQL_FOTOS,
+  SQL_GUARDAR_LOTE,
   SQL_HISTORIAL,
   SQL_LIBERAR_NOMBRES,
   SQL_PROYECTOS,
@@ -166,6 +168,7 @@ describe('POST /ingest/proyectos', () => {
     expect(await contar('SELECT count(*) AS n FROM projects')).toBe(1);
     expect(await contar('SELECT estrellas AS n FROM projects WHERE id = 1')).toBe(1001);
     expect(await contar('SELECT count(*) AS n FROM snapshots')).toBe(1);
+    expect(await contar('SELECT count(*) AS n FROM ingesta_lotes')).toBe(0);
   });
 
   it('rechaza un JSON roto y una fecha que no es AAAA-MM-DD', async () => {
@@ -174,9 +177,15 @@ describe('POST /ingest/proyectos', () => {
     ).toBe(400);
     expect((await enviar([proyecto(1)], '17-10-2026')).status).toBe(400);
     expect(await contar('SELECT count(*) AS n FROM projects')).toBe(0);
+    expect(await contar('SELECT count(*) AS n FROM ingesta_lotes')).toBe(0);
   });
 
-  it('respeta los límites del plan gratuito: 4 consultas por petición, lleve los proyectos que lleve', async () => {
+  it('el lote de paso se borra en la misma petición', async () => {
+    expect((await enviar([proyecto(1), proyecto(2)])).status).toBe(200);
+    expect(await contar('SELECT count(*) AS n FROM ingesta_lotes')).toBe(0);
+  });
+
+  it('respeta los límites del plan gratuito: 6 consultas por petición, lleve los proyectos que lleve', async () => {
     const lote = Array.from({ length: 2000 }, (_, i) =>
       proyecto(i + 1, { descripcion: null, topics: [], licencias: [], origen: [] }),
     );
@@ -186,7 +195,7 @@ describe('POST /ingest/proyectos', () => {
       entorno: { DB: db },
     });
     expect(respuesta.status).toBe(200);
-    expect(cuenta.consultas).toBe(4);
+    expect(cuenta.consultas).toBe(6);
     expect(await contar('SELECT count(*) AS n FROM projects')).toBe(2000);
     expect(await contar('SELECT count(*) AS n FROM snapshots')).toBe(2000);
   });
@@ -280,6 +289,8 @@ describe('POST /ingest/ejecucion', () => {
 describe('Consultas SQL', () => {
   it('caben en los límites de D1: menos de 100 KB y menos de 100 parámetros', () => {
     const consultas = [
+      SQL_GUARDAR_LOTE,
+      SQL_BORRAR_LOTE,
       SQL_LIBERAR_NOMBRES,
       SQL_PROYECTOS,
       SQL_RENOMBRES,
