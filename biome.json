@@ -7,7 +7,13 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!design/maqueta", "!data/semilla.generada.json"]
+    "includes": [
+      "**",
+      "!design/maqueta",
+      "!data/semilla.generada.json",
+      "!data/export",
+      "!jobs/licencias"
+    ]
   },
   "formatter": {
     "enabled": true,

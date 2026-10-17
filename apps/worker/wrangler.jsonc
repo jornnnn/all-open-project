@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Nombre del Worker y de su dirección: all-open-project.<subdominio>.workers.dev.
+  "name": "all-open-project",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-12",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "all-open-project",
+      // Creada el 17-oct-2026 en Europa occidental (WEUR).
+      "database_id": "72b47222-ec73-4b83-8009-ffc7a1134e28",
+      "migrations_dir": "migrations"
+    }
+  ]
+  // INGEST_KEY es un secreto: «wrangler secret put INGEST_KEY» en Cloudflare y .dev.vars en local.
+}

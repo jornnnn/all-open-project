@@ -1,17 +1,28 @@
-// Cliente mínimo de la API GraphQL de GitHub. Solo lee: nunca escribe en GitHub.
+// Cliente mínimo de las API GraphQL y REST de GitHub. Solo lee: nunca escribe en GitHub.
 //
 // GitHub corta las consultas que tardan más de 10 s (responde 502 o 504). Medido el 16-oct-2026:
 // una búsqueda de 100 repos con la fecha del último commit tarda ~9,5 s; de 50 repos sin ella, ~3,5 s.
 // Por eso cada búsqueda va sola, pide 50 repos sin commit, y las fechas se piden luego en lotes.
+//
+// Medido el 17-oct-2026 para el robot diario: con todos sus campos, 25 repos tardan ~5 s y 50 ya
+// superan los recursos que permite GitHub (RESOURCE_LIMITS_EXCEEDED, por las descargas de cada
+// archivo). Con 3 peticiones a la vez, 600 repos tardan ~44 s; pero si ese ritmo se mantiene con
+// los 3.000, GitHub frena (límite secundario de tiempo de CPU por minuto). Por eso el robot usa
+// un presupuesto de tiempo de respuesta por minuto (presupuestoPorMinutoMs).
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-const URL_GRAPHQL = 'https://api.github.com/graphql';
+const URL_API = 'https://api.github.com';
+const URL_GRAPHQL = `${URL_API}/graphql`;
 const REPOS_POR_PETICION = 25;
 const FECHAS_POR_PETICION = 30;
+const AGENTE = 'all-open-project-robot';
 
-/** GitHub no ha podido responder a tiempo (502, 503, 504) ni tras reintentar. */
+/**
+ * GitHub no ha podido responder a tiempo (502, 503, 504) ni tras reintentar, o la consulta pide
+ * demasiado (RESOURCE_LIMITS_EXCEEDED). En los dos casos ayuda partir el lote.
+ */
 export class ErrorTemporalDeGithub extends Error {}
 
 /**
@@ -35,16 +46,27 @@ export async function obtenerToken(): Promise<string> {
 interface ErrorGraphql {
   type?: string;
   message: string;
+  /** Campo de la consulta al que se refiere: [alias] si es un repo concreto. */
+  path?: (string | number)[];
 }
 
 export interface OpcionesCliente {
   /** Tiempo mínimo entre el inicio de dos peticiones, para no rozar los límites de GitHub. */
   pausaMs?: number;
   reintentos?: number;
+  /**
+   * Tiempo de respuesta de GraphQL que se permite por minuto, sumando las peticiones simultáneas.
+   * GitHub limita su tiempo de CPU (60 s por minuto para GraphQL) y aconseja estimarlo con el
+   * tiempo de respuesta. Sin valor, no se limita.
+   */
+  presupuestoPorMinutoMs?: number;
 }
 
 export interface OpcionesConsulta {
-  /** No falla si algún repositorio pedido no existe (vuelve como null). */
+  /**
+   * No falla si algún repositorio pedido no existe o GitHub lo tiene bloqueado (vuelve como null).
+   * Quien llama debe comprobar que no faltan demasiados: si el token no sirve, faltarían todos.
+   */
   permitirNoEncontrados?: boolean;
   /** Reintentos para esta consulta, si se quieren menos que los del cliente. */
   reintentos?: number;
@@ -56,7 +78,9 @@ export interface ClienteGithub {
     variables?: Record<string, unknown>,
     opciones?: OpcionesConsulta,
   ): Promise<T>;
-  /** Puntos de la API que quedan en esta hora, según la última respuesta. */
+  /** GET a la API REST (ruta como «/repos/o/r»). Devuelve null si no existe (404, 409 o 451). */
+  rest<T>(ruta: string): Promise<T | null>;
+  /** Puntos de la API GraphQL que quedan en esta hora, según la última respuesta. */
   restantes(): number | null;
 }
 
@@ -76,11 +100,14 @@ function esperaTrasLimite(cabeceras: Headers, intento: number): number {
 export function crearCliente(token: string, opciones: OpcionesCliente = {}): ClienteGithub {
   const pausaMs = opciones.pausaMs ?? 1000;
   const reintentos = opciones.reintentos ?? 5;
+  const presupuesto = opciones.presupuestoPorMinutoMs;
   let restantes: number | null = null;
 
   // Turnos en fila: aunque haya varias peticiones a la vez, empiezan con pausaMs de separación.
+  // Si GitHub frena a una (403 o 429), todas esperan hasta pausaHasta en vez de seguir insistiendo.
   let turno = Promise.resolve();
   let ultimaPeticion = 0;
+  let pausaHasta = 0;
   function esperarTurno(): Promise<void> {
     const anterior = turno;
     let liberar = () => {};
@@ -88,11 +115,59 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
       liberar = resolver;
     });
     return anterior.then(async () => {
-      const espera = ultimaPeticion + pausaMs - Date.now();
+      const espera = Math.max(ultimaPeticion + pausaMs, pausaHasta) - Date.now();
       if (espera > 0) await dormir(espera);
       ultimaPeticion = Date.now();
       liberar();
     });
+  }
+  function frenar(respuesta: Response, intento: number): number {
+    const ms = esperaTrasLimite(respuesta.headers, intento);
+    pausaHasta = Math.max(pausaHasta, Date.now() + ms);
+    console.warn(
+      `\nGitHub respondió ${respuesta.status}; se reintenta en ${Math.round(ms / 1000)} s`,
+    );
+    return ms;
+  }
+
+  // Presupuesto de tiempo de respuesta: lo gastado por las peticiones del último minuto, más lo que
+  // gastarán las que están en marcha (estimado con la media).
+  const recientes: { fin: number; ms: number }[] = [];
+  let enMarcha = 0;
+  async function esperarPresupuesto(): Promise<void> {
+    if (presupuesto === undefined) return;
+    for (;;) {
+      const ahora = Date.now();
+      while (recientes.length > 0 && (recientes[0]?.fin ?? ahora) < ahora - 60_000) {
+        recientes.shift();
+      }
+      const gastado = recientes.reduce((total, r) => total + r.ms, 0);
+      const media = recientes.length > 0 ? gastado / recientes.length : 0;
+      if (gastado + enMarcha * media < presupuesto) return;
+      await dormir(250);
+    }
+  }
+
+  async function pedirGraphql(cuerpo: string): Promise<{ respuesta: Response; texto: string }> {
+    await esperarTurno();
+    await esperarPresupuesto();
+    enMarcha++;
+    const inicio = Date.now();
+    try {
+      const respuesta = await fetch(URL_GRAPHQL, {
+        method: 'POST',
+        headers: {
+          authorization: `bearer ${token}`,
+          'content-type': 'application/json',
+          'user-agent': AGENTE,
+        },
+        body: cuerpo,
+      });
+      return { respuesta, texto: await respuesta.text() };
+    } finally {
+      enMarcha--;
+      recientes.push({ fin: Date.now(), ms: Date.now() - inicio });
+    }
   }
 
   async function graphql<T>(
@@ -102,16 +177,7 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
   ): Promise<T> {
     const maxReintentos = reintentosConsulta ?? reintentos;
     for (let intento = 0; ; intento++) {
-      await esperarTurno();
-      const respuesta = await fetch(URL_GRAPHQL, {
-        method: 'POST',
-        headers: {
-          authorization: `bearer ${token}`,
-          'content-type': 'application/json',
-          'user-agent': 'all-open-project-robot',
-        },
-        body: JSON.stringify({ query, variables }),
-      });
+      const { respuesta, texto } = await pedirGraphql(JSON.stringify({ query, variables }));
       const quedan = respuesta.headers.get('x-ratelimit-remaining');
       if (quedan !== null) restantes = Number(quedan);
 
@@ -121,21 +187,25 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
           const mensaje = `GitHub respondió ${respuesta.status} tras ${intento + 1} intentos`;
           throw limitado ? new Error(mensaje) : new ErrorTemporalDeGithub(mensaje);
         }
-        const ms = esperaTrasLimite(respuesta.headers, intento);
-        console.warn(
-          `\nGitHub respondió ${respuesta.status}; reintento en ${Math.round(ms / 1000)} s`,
+        // Un límite frena a todas las peticiones; un fallo del servidor, solo a esta.
+        await dormir(
+          limitado ? frenar(respuesta, intento) : esperaTrasLimite(respuesta.headers, intento),
         );
-        await dormir(ms);
         continue;
       }
       if (!respuesta.ok) {
-        throw new Error(`GitHub respondió ${respuesta.status}: ${await respuesta.text()}`);
+        throw new Error(`GitHub respondió ${respuesta.status}: ${texto}`);
       }
 
-      const cuerpo = (await respuesta.json()) as { data?: T; errors?: ErrorGraphql[] };
+      const cuerpo = JSON.parse(texto) as { data?: T; errors?: ErrorGraphql[] };
       const errores = (cuerpo.errors ?? []).filter(
-        (e) => !(permitirNoEncontrados && e.type === 'NOT_FOUND'),
+        (e) => !(permitirNoEncontrados && esDeUnRepo(e)),
       );
+      if (errores.some((e) => e.type === 'RESOURCE_LIMITS_EXCEEDED')) {
+        throw new ErrorTemporalDeGithub(
+          'La consulta pide demasiado a GitHub (RESOURCE_LIMITS_EXCEEDED)',
+        );
+      }
       if (errores.some((e) => e.type === 'RATE_LIMITED') && intento < maxReintentos) {
         await dormir(esperaTrasLimite(respuesta.headers, intento));
         continue;
@@ -148,7 +218,50 @@ export function crearCliente(token: string, opciones: OpcionesCliente = {}): Cli
     }
   }
 
-  return { graphql, restantes: () => restantes };
+  async function rest<T>(ruta: string): Promise<T | null> {
+    for (let intento = 0; ; intento++) {
+      await esperarTurno();
+      const respuesta = await fetch(`${URL_API}${ruta}`, {
+        headers: {
+          authorization: `bearer ${token}`,
+          accept: 'application/vnd.github+json',
+          'x-github-api-version': '2022-11-28',
+          'user-agent': AGENTE,
+        },
+      });
+      // No existe, está vacío (409) o bloqueado por motivos legales (451).
+      if ([404, 409, 451].includes(respuesta.status)) return null;
+      const limitado =
+        respuesta.status === 429 ||
+        (respuesta.status === 403 &&
+          (respuesta.headers.has('retry-after') ||
+            respuesta.headers.get('x-ratelimit-remaining') === '0'));
+      if (limitado || respuesta.status >= 500) {
+        if (intento >= reintentos) {
+          throw new Error(
+            `GitHub respondió ${respuesta.status} en ${ruta} tras ${intento + 1} intentos`,
+          );
+        }
+        await dormir(
+          limitado ? frenar(respuesta, intento) : esperaTrasLimite(respuesta.headers, intento),
+        );
+        continue;
+      }
+      if (!respuesta.ok) {
+        throw new Error(
+          `GitHub respondió ${respuesta.status} en ${ruta}: ${await respuesta.text()}`,
+        );
+      }
+      return (await respuesta.json()) as T;
+    }
+  }
+
+  return { graphql, rest, restantes: () => restantes };
+}
+
+/** Error de un repo concreto (su alias, «r3») que no existe o está bloqueado: vuelve como null. */
+function esDeUnRepo(error: ErrorGraphql): boolean {
+  return (error.type === 'NOT_FOUND' || error.type === 'FORBIDDEN') && error.path?.length === 1;
 }
 
 /** Campos de cada repositorio. La fecha del último commit se pide aparte porque es lenta. */
@@ -232,7 +345,7 @@ function trocear<T>(lista: readonly T[], tamano: number): T[][] {
 }
 
 /** Ejecuta tareas con un máximo de `concurrencia` a la vez. */
-async function enParalelo<T>(
+export async function enParalelo<T>(
   tareas: readonly T[],
   concurrencia: number,
   hacer: (tarea: T) => Promise<void>,
@@ -248,14 +361,26 @@ async function enParalelo<T>(
 }
 
 /** Pide un grupo; si GitHub no llega a tiempo, lo parte en dos y lo vuelve a intentar. */
-async function conDivision<T>(grupo: readonly T[], pedir: (grupo: readonly T[]) => Promise<void>) {
+async function conDivision<T>(
+  grupo: readonly T[],
+  pedir: (grupo: readonly T[]) => Promise<void>,
+  /** Si se da, un elemento que falla solo no detiene todo: se anota y se sigue. */
+  alFallarUno?: (elemento: T, error: Error) => void,
+) {
   try {
     await pedir(grupo);
   } catch (error) {
-    if (!(error instanceof ErrorTemporalDeGithub) || grupo.length === 1) throw error;
+    if (!(error instanceof ErrorTemporalDeGithub)) throw error;
+    if (grupo.length === 1) {
+      if (alFallarUno && grupo[0] !== undefined) {
+        alFallarUno(grupo[0], error);
+        return;
+      }
+      throw error;
+    }
     const mitad = Math.ceil(grupo.length / 2);
-    await conDivision(grupo.slice(0, mitad), pedir);
-    await conDivision(grupo.slice(mitad), pedir);
+    await conDivision(grupo.slice(0, mitad), pedir, alFallarUno);
+    await conDivision(grupo.slice(mitad), pedir, alFallarUno);
   }
 }
 
@@ -379,4 +504,271 @@ export async function obtenerDatosActuales(
     alProgresar?.(resultados.size);
   }
   return resultados;
+}
+
+// --- Robot diario ----------------------------------------------------------------------------
+
+/** Todo lo que el robot diario guarda de cada proyecto. */
+const CAMPOS_DIARIO = `
+  databaseId
+  ${CAMPOS_REPO}
+  isDisabled
+  hasIssuesEnabled
+  owner { __typename ... on Organization { isVerified } }
+  ${CAMPO_COMMIT}
+  issuesAbiertas: issues(states: OPEN) { totalCount }
+  issuesCerradas: issues(states: CLOSED) { totalCount }
+  latestRelease {
+    tagName
+    publishedAt
+    releaseAssets(first: 100) { totalCount nodes { name downloadCount } }
+  }`;
+
+interface NodoDiario extends NodoRepo {
+  databaseId: number;
+  isDisabled: boolean;
+  hasIssuesEnabled: boolean;
+  owner: { __typename: string; isVerified?: boolean };
+  issuesAbiertas: { totalCount: number };
+  issuesCerradas: { totalCount: number };
+  latestRelease: {
+    tagName: string;
+    publishedAt: string | null;
+    releaseAssets: { totalCount: number; nodes: { name: string; downloadCount: number }[] };
+  } | null;
+}
+
+/** Archivo de una versión publicada, con sus descargas. */
+export interface ArchivoVersion {
+  nombre: string;
+  descargas: number;
+}
+
+/** Lo que el robot diario lee de cada repo. */
+export interface RepoDiario extends RepoGithub {
+  /** Identificador numérico de GitHub: no cambia aunque renombren o transfieran el repo. */
+  id: number;
+  deshabilitado: boolean;
+  /** null si el repo tiene las issues desactivadas. */
+  issuesAbiertas: number | null;
+  issuesCerradas: number | null;
+  /** Si el dueño es una organización verificada por GitHub; null si es una persona. */
+  organizacionVerificada: boolean | null;
+  /** Última versión publicada (la que GitHub marca como «latest»); null si no hay. */
+  version: {
+    nombre: string;
+    fecha: string | null;
+    archivos: ArchivoVersion[];
+    /** Archivos de la versión; si son más de 100, solo se leen los 100 primeros. */
+    totalArchivos: number;
+  } | null;
+}
+
+/**
+ * Fecha en UTC con el formato de GitHub (2026-10-17T03:17:00Z). La del commit es un GitTimestamp,
+ * que según la documentación puede llevar la zona horaria del autor.
+ */
+export function enUtc(fecha: string): string {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(fecha)) return fecha;
+  const momento = new Date(fecha);
+  if (Number.isNaN(momento.getTime())) throw new Error(`Fecha no válida de GitHub: «${fecha}»`);
+  return momento.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+function leerRepoDiario(nodo: NodoDiario): RepoDiario {
+  const version = nodo.latestRelease;
+  const base = leerRepo(nodo);
+  return {
+    ...base,
+    creado: enUtc(base.creado),
+    ultimoPush: base.ultimoPush === null ? null : enUtc(base.ultimoPush),
+    ultimoCommit: base.ultimoCommit === null ? null : enUtc(base.ultimoCommit),
+    id: nodo.databaseId,
+    deshabilitado: nodo.isDisabled,
+    issuesAbiertas: nodo.hasIssuesEnabled ? nodo.issuesAbiertas.totalCount : null,
+    issuesCerradas: nodo.hasIssuesEnabled ? nodo.issuesCerradas.totalCount : null,
+    organizacionVerificada:
+      nodo.owner.__typename === 'Organization' ? nodo.owner.isVerified === true : null,
+    version: version
+      ? {
+          nombre: version.tagName,
+          fecha: version.publishedAt === null ? null : enUtc(version.publishedAt),
+          archivos: version.releaseAssets.nodes.map((a) => ({
+            nombre: a.name,
+            descargas: a.downloadCount,
+          })),
+          totalArchivos: version.releaseAssets.totalCount,
+        }
+      : null,
+  };
+}
+
+export interface ResultadoDiario {
+  /** Datos de cada repo pedido; null si ya no existe o GitHub lo tiene bloqueado. */
+  repos: Map<string, RepoDiario | null>;
+  /** Repos que GitHub no ha podido servir ni pidiéndolos solos, con el motivo. */
+  fallidos: Map<string, string>;
+}
+
+/**
+ * Pide los datos del robot diario por nombre, en lotes de 25 y varios a la vez. Si GitHub no llega
+ * a tiempo o la consulta pide demasiado, parte el lote; un repo que falla incluso solo se anota en
+ * `fallidos` y no detiene a los demás.
+ */
+export async function obtenerReposDiario(
+  cliente: ClienteGithub,
+  nombres: readonly string[],
+  {
+    concurrencia = 3,
+    alProgresar,
+  }: { concurrencia?: number; alProgresar?: (hechos: number) => void } = {},
+): Promise<ResultadoDiario> {
+  const repos = new Map<string, RepoDiario | null>();
+  const fallidos = new Map<string, string>();
+  const trozos = trocear([...new Set(nombres)], REPOS_POR_PETICION);
+  await enParalelo(trozos, concurrencia, async (trozo) => {
+    await conDivision(
+      trozo,
+      async (grupo) => {
+        const { query, variables } = consultaPorNombre(grupo, CAMPOS_DIARIO);
+        const datos = await cliente.graphql<Record<string, NodoDiario | null>>(query, variables, {
+          permitirNoEncontrados: true,
+          reintentos: grupo.length > 1 ? 1 : 5,
+        });
+        grupo.forEach((nombre, i) => {
+          const nodo = datos[`r${i}`];
+          repos.set(nombre, nodo ? leerRepoDiario(nodo) : null);
+        });
+      },
+      (nombre, error) => fallidos.set(nombre, error.message),
+    );
+    alProgresar?.(repos.size + fallidos.size);
+  });
+  return { repos, fallidos };
+}
+
+/** Un archivo o carpeta de un repo, en su rama principal. */
+export interface PeticionArchivo {
+  repo: string;
+  /** Ruta dentro del repo; '' es la raíz. */
+  ruta: string;
+}
+
+export const claveArchivo = (p: PeticionArchivo) => `${p.repo}:${p.ruta}`;
+
+/** Variables y alias de una consulta que pide un objeto git («HEAD:ruta») de varios repos. */
+function consultaDeObjetos(grupo: readonly PeticionArchivo[], campos: string) {
+  const parametros = grupo
+    .map((_, i) => `$o${i}: String!, $n${i}: String!, $e${i}: String!`)
+    .join(', ');
+  const cuerpo = grupo
+    .map(
+      (_, i) =>
+        `r${i}: repository(owner: $o${i}, name: $n${i}) { object(expression: $e${i}) { ${campos} } }`,
+    )
+    .join('\n');
+  const variables: Record<string, string> = {};
+  grupo.forEach((p, i) => {
+    const [propietario = '', repo = ''] = p.repo.split('/');
+    variables[`o${i}`] = propietario;
+    variables[`n${i}`] = repo;
+    variables[`e${i}`] = `HEAD:${p.ruta}`;
+  });
+  return { query: `query(${parametros}) {\n${cuerpo}\n}`, variables };
+}
+
+async function pedirObjetos<N, R>(
+  cliente: ClienteGithub,
+  peticiones: readonly PeticionArchivo[],
+  campos: string,
+  porLote: number,
+  leer: (objeto: N | null) => R | null,
+  concurrencia: number,
+): Promise<Map<string, R | null>> {
+  const resultados = new Map<string, R | null>();
+  await enParalelo(trocear(peticiones, porLote), concurrencia, async (trozo) => {
+    await conDivision(trozo, async (grupo) => {
+      const { query, variables } = consultaDeObjetos(grupo, campos);
+      const datos = await cliente.graphql<Record<string, { object: N | null } | null>>(
+        query,
+        variables,
+        { permitirNoEncontrados: true, reintentos: grupo.length > 1 ? 1 : 5 },
+      );
+      grupo.forEach((p, i) => {
+        resultados.set(claveArchivo(p), leer(datos[`r${i}`]?.object ?? null));
+      });
+    });
+  });
+  return resultados;
+}
+
+export interface EntradaCarpeta {
+  nombre: string;
+  tipo: 'blob' | 'tree' | 'commit';
+}
+
+/** Contenido de carpetas (la raíz es ''). Vuelve null si la carpeta no existe. */
+export function obtenerEntradas(
+  cliente: ClienteGithub,
+  peticiones: readonly PeticionArchivo[],
+  concurrencia = 3,
+): Promise<Map<string, EntradaCarpeta[] | null>> {
+  return pedirObjetos<
+    { entries?: { name: string; type: EntradaCarpeta['tipo'] }[] },
+    EntradaCarpeta[]
+  >(
+    cliente,
+    peticiones,
+    '... on Tree { entries { name type } }',
+    25,
+    (objeto) => objeto?.entries?.map((e) => ({ nombre: e.name, tipo: e.type })) ?? null,
+    concurrencia,
+  );
+}
+
+export interface TextoArchivo {
+  /** null si el archivo es binario. */
+  texto: string | null;
+  /** GitHub no da el texto entero de los archivos muy grandes. */
+  truncado: boolean;
+}
+
+/** Texto de archivos. Vuelve null si el archivo no existe. */
+export function obtenerTextos(
+  cliente: ClienteGithub,
+  peticiones: readonly PeticionArchivo[],
+  concurrencia = 3,
+): Promise<Map<string, TextoArchivo | null>> {
+  return pedirObjetos<
+    { text?: string | null; isBinary?: boolean; isTruncated?: boolean },
+    TextoArchivo
+  >(
+    cliente,
+    peticiones,
+    '... on Blob { text isBinary isTruncated }',
+    20,
+    (objeto) =>
+      objeto && 'isBinary' in objeto
+        ? {
+            texto: objeto.isBinary ? null : (objeto.text ?? null),
+            truncado: objeto.isTruncated === true,
+          }
+        : null,
+    concurrencia,
+  );
+}
+
+/** Todas las rutas de archivos de un repo (rama principal). Vuelve null si el repo está vacío. */
+export async function obtenerArbol(
+  cliente: ClienteGithub,
+  repo: string,
+): Promise<{ rutas: string[]; truncado: boolean } | null> {
+  const arbol = await cliente.rest<{ truncated: boolean; tree: { path: string; type: string }[] }>(
+    `/repos/${repo}/git/trees/HEAD?recursive=1`,
+  );
+  if (!arbol) return null;
+  return {
+    rutas: arbol.tree.filter((e) => e.type === 'blob').map((e) => e.path),
+    truncado: arbol.truncated,
+  };
 }

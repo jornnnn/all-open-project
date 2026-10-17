@@ -11,7 +11,9 @@
     "semilla": "node semilla.ts",
     "muestra": "node muestra-semilla.ts",
     "explorar": "node explorar-topics.ts",
-    "licencias": "node actualizar-licencias.ts"
+    "licencias": "node actualizar-licencias.ts",
+    "diario": "node diario.ts",
+    "verificar": "node verificar-muestra.ts"
   },
   "dependencies": {
     "@aop/core": "workspace:*",

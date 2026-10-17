@@ -1,0 +1,53 @@
+name: Robot diario
+
+# Cada noche: lee de GitHub todo el catálogo, lo guarda en D1 a través del Worker y publica los
+# datos abiertos (data/export/) con un commit. Ese commit también mantiene vivo el repo: GitHub
+# apaga las tareas programadas de los repos públicos que llevan 60 días sin actividad.
+
+on:
+  schedule:
+    # 03:17 UTC: una hora poco habitual, para que GitHub no lo retrase.
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: robot-diario
+  cancel-in-progress: false
+
+jobs:
+  robot:
+    name: Foto diaria del catálogo
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      # Instala la versión de pnpm del campo «packageManager» de package.json.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      # Solo el robot y lo que necesita (sin wrangler ni la web).
+      - run: pnpm install --frozen-lockfile --filter "@aop/jobs..."
+      - name: Robot diario
+        run: pnpm diario
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      - name: Commit de los datos abiertos
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/export
+          if git diff --cached --quiet; then
+            echo 'Los datos abiertos no han cambiado.'
+            exit 0
+          fi
+          git commit -m "Datos abiertos del $(date -u +%F)"
+          # Por si alguien ha subido algo mientras corría el robot (solo él toca data/export).
+          git pull --rebase origin main
+          git push origin HEAD:main

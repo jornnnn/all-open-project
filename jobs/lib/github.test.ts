@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   type ClienteGithub,
+  crearCliente,
   ErrorTemporalDeGithub,
   obtenerDatosActuales,
   obtenerRepos,
+  obtenerReposDiario,
 } from './github.ts';
 
 function nodo(nombre: string) {
   return {
+    databaseId: 42,
     nameWithOwner: nombre,
     description: 'Un programa',
     homepageUrl: '',
@@ -16,26 +19,48 @@ function nodo(nombre: string) {
     isFork: false,
     isArchived: false,
     isMirror: false,
+    isDisabled: false,
+    hasIssuesEnabled: true,
     createdAt: '2020-01-01T00:00:00Z',
     pushedAt: '2026-10-01T00:00:00Z',
     primaryLanguage: { name: 'Go' },
     licenseInfo: { spdxId: 'MIT' },
     repositoryTopics: { nodes: [{ topic: { name: 'cli' } }] },
+    owner: { __typename: 'Organization', isVerified: true },
     defaultBranchRef: { target: { committedDate: '2026-09-30T00:00:00Z' } },
+    issuesAbiertas: { totalCount: 7 },
+    issuesCerradas: { totalCount: 93 },
+    latestRelease: {
+      tagName: 'v1.2.0',
+      publishedAt: '2026-09-01T10:00:00Z',
+      releaseAssets: {
+        totalCount: 2,
+        nodes: [
+          { name: 'app-setup.exe', downloadCount: 500 },
+          { name: 'app.dmg', downloadCount: 300 },
+        ],
+      },
+    },
   };
 }
 
-/** Cliente falso: GitHub «no llega a tiempo» si se le piden más de `maximo` repos a la vez. */
-function clienteFalso(existentes: Set<string>, maximo: number) {
+/**
+ * Cliente falso: GitHub «no llega a tiempo» si se le piden más de `maximo` repos a la vez o si
+ * entre ellos está alguno de `siempreFallan`.
+ */
+function clienteFalso(existentes: Set<string>, maximo: number, siempreFallan = new Set<string>()) {
   const tamanos: number[] = [];
   const cliente: ClienteGithub = {
     restantes: () => 5000,
+    rest: async () => null,
     async graphql<T>(_query: string, variables: Record<string, unknown> = {}) {
       const nombres = Object.keys(variables)
         .filter((k) => k.startsWith('o'))
         .map((k) => `${variables[k]}/${variables[`n${k.slice(1)}`]}`);
       tamanos.push(nombres.length);
-      if (nombres.length > maximo) throw new ErrorTemporalDeGithub('502');
+      if (nombres.length > maximo || nombres.some((n) => siempreFallan.has(n))) {
+        throw new ErrorTemporalDeGithub('502');
+      }
       const datos = Object.fromEntries(
         nombres.map((n, i) => [`r${i}`, existentes.has(n) ? nodo(n) : null]),
       );
@@ -96,5 +121,93 @@ describe('obtenerDatosActuales', () => {
       archivado: false,
       ultimoCommit: '2026-09-30T00:00:00Z',
     });
+  });
+});
+
+describe('obtenerReposDiario', () => {
+  it('lee todo lo del robot diario: id, issues, organización verificada y última versión', async () => {
+    const { cliente } = clienteFalso(new Set(['o/existe']), 25);
+    const { repos, fallidos } = await obtenerReposDiario(cliente, ['o/existe', 'o/borrado']);
+    expect(fallidos.size).toBe(0);
+    expect(repos.get('o/borrado')).toBeNull();
+    expect(repos.get('o/existe')).toMatchObject({
+      id: 42,
+      repo: 'o/existe',
+      deshabilitado: false,
+      issuesAbiertas: 7,
+      issuesCerradas: 93,
+      organizacionVerificada: true,
+      ultimoCommit: '2026-09-30T00:00:00Z',
+      version: {
+        nombre: 'v1.2.0',
+        fecha: '2026-09-01T10:00:00Z',
+        totalArchivos: 2,
+        archivos: [
+          { nombre: 'app-setup.exe', descargas: 500 },
+          { nombre: 'app.dmg', descargas: 300 },
+        ],
+      },
+    });
+  });
+
+  it('un repo que falla incluso solo se anota y no detiene a los demás', async () => {
+    const nombres = Array.from({ length: 8 }, (_, i) => `o/r${i}`);
+    const { cliente } = clienteFalso(new Set(nombres), 25, new Set(['o/r5']));
+    const { repos, fallidos } = await obtenerReposDiario(cliente, nombres);
+    expect([...fallidos.keys()]).toEqual(['o/r5']);
+    expect(repos.size).toBe(7);
+    expect([...repos.values()].every((r) => r !== null)).toBe(true);
+  });
+});
+
+describe('crearCliente', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const responder = (cuerpo: unknown) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(cuerpo), { status: 200 })),
+    );
+
+  it('un repo que no existe o está bloqueado vuelve como null si se permite', async () => {
+    responder({
+      data: { r0: null, r1: null, r2: { nameWithOwner: 'o/b' } },
+      errors: [
+        { type: 'NOT_FOUND', path: ['r0'], message: 'Could not resolve to a Repository' },
+        { type: 'FORBIDDEN', path: ['r1'], message: 'Repository access blocked' },
+      ],
+    });
+    const cliente = crearCliente('token', { pausaMs: 0 });
+    const datos = await cliente.graphql<Record<string, unknown>>(
+      'query',
+      {},
+      {
+        permitirNoEncontrados: true,
+      },
+    );
+    expect(datos).toEqual({ r0: null, r1: null, r2: { nameWithOwner: 'o/b' } });
+    await expect(cliente.graphql('query')).rejects.toThrow('Could not resolve');
+  });
+
+  it('un error sin repo concreto no se oculta nunca', async () => {
+    responder({
+      data: { r0: null },
+      errors: [{ type: 'FORBIDDEN', message: 'Token sin permisos' }],
+    });
+    const cliente = crearCliente('token', { pausaMs: 0 });
+    await expect(cliente.graphql('query', {}, { permitirNoEncontrados: true })).rejects.toThrow(
+      'Token sin permisos',
+    );
+  });
+
+  it('si la consulta pide demasiado, avisa para partir el lote', async () => {
+    responder({
+      data: { r0: null },
+      errors: [{ type: 'RESOURCE_LIMITS_EXCEEDED', path: ['r0', 'latestRelease'], message: 'x' }],
+    });
+    const cliente = crearCliente('token', { pausaMs: 0 });
+    await expect(cliente.graphql('query', {}, { permitirNoEncontrados: true })).rejects.toThrow(
+      ErrorTemporalDeGithub,
+    );
   });
 });

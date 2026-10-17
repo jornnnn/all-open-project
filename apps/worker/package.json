@@ -1,0 +1,24 @@
+{
+  "name": "@aop/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Worker de Cloudflare: recibe los datos del robot en /ingest y sirve /estado y la API.",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "wrangler dev",
+    "desplegar": "wrangler deploy",
+    "migrar:local": "wrangler d1 migrations apply DB --local",
+    "migrar:remoto": "wrangler d1 migrations apply DB --remote",
+    "tipos": "wrangler types",
+    "typecheck": "wrangler types && tsc --noEmit && tsc --noEmit -p test",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.4.3",
+    "wrangler": "4.151.0"
+  }
+}

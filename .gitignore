@@ -7,3 +7,8 @@ coverage/
 .env.*
 .DS_Store
 Thumbs.db
+
+# Cloudflare: secretos locales, estado de wrangler y tipos generados
+.dev.vars*
+.wrangler/
+worker-configuration.d.ts

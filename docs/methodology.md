@@ -39,8 +39,18 @@ Search results exclude:
 |---|---|
 | Open source | OSI-approved or FSF free license, per the [official SPDX list](https://spdx.org/licenses/) |
 | Source-available | The code is visible but commercial use, use as a service or derivative works are restricted: Business Source (BUSL), SSPL, Elastic, PolyForm, Functional Source (FSL), Sustainable Use, Creative Commons NC or ND, among others |
-| Other license | GitHub sees a license but cannot identify it. We review it by hand before saying anything |
+| Other license | We don't know for sure which one it is: a person reviews it before we say anything |
 | No license | There is no license: legally, the code cannot be reused |
+
+We start from what GitHub says. When GitHub doesn't know, we read the project's license files:
+
+- **GitHub sees a license but can't tell which** (this happens, for example, with dual licenses or an added title). We compare each license file in the root folder with the official SPDX texts.
+  - We say **open source** only if every file is the official text of a free license and the only extra text is titles, names and copyright notices. If any sentence is added ("except the `ee/` folder", "not the text", "not for military use"…), it stays as *other license*.
+  - We say **source-available** if it names a license with restrictions (Business Source, SSPL, Elastic, Sustainable Use, PolyForm, Functional Source, Commons Clause, Creative Commons NC or ND, community licenses or EULAs…) and no free one.
+  - If it mixes both ("AGPL or Elastic, at your choice"), it stays as *other license*: a person decides.
+- **GitHub sees no license.** GitHub only looks at the root folder, so before saying *no license* we look for license files in the whole repository, ignoring folders with other people's code (`node_modules`, `vendor`, `third_party`, fonts…). If there is one in the root with another name (`gpl-3.0.txt`, `EULA.txt`), we read it; if there are only some in subfolders, it stays as *other license* to be reviewed.
+
+Each project explains how its license was decided when GitHub's answer is not enough. Manual corrections are recorded in [`data/editorial.yaml`](../data/editorial.yaml).
 
 ## Installers
 
@@ -55,6 +65,30 @@ We look at the files of the latest release:
 
 Signatures, checksums and debug packages do not count.
 
+**Downloads** are those of the files of that latest release on GitHub, not counting checksums, signatures or the files that installed apps check for updates (`latest.yml`, `latest.json`…).
+
+## Score
+
+It goes from 0 to 100 and **compares each project with the others in its main subtopic** (every project with that subtopic, even as a secondary one). That way the best password manager scores high even with fewer stars than an AI project. If the subtopic has fewer than 10 projects, the comparison uses its whole area.
+
+| Part | Weight | How it is measured |
+|---|---|---|
+| Popularity | 30 | Percentile of stars (70%) and forks (30%) within the subtopic |
+| Momentum | 20 | Percentile of stars gained per day over the last 30 days, from our daily snapshots |
+| Health | 30 | Average of: activity (latest change: 100% up to 30 days, 0% at one year), releases (100% up to 90 days, 0% at two years) and issues (share of closed ones, if there are at least 10) |
+| Real use | 20 | Percentile of daily downloads of the latest release on GitHub |
+
+- The **percentile** is the share of projects in the subtopic that rank below (ties count as half).
+- **If a part has no data, its weight is shared among the others.** This happens with momentum until we have 7 days of snapshots, and with real use for projects that don't publish files on GitHub (for example, libraries installed with npm or pip). Health works the same way: if there are no releases or issues, only what exists counts.
+- **Points are taken off:** 30 if archived, 20 if there have been no changes for more than 12 months and 15 if there is no license. A *finished* project (a person decides) does not lose points for having no changes.
+- **Coming soon:** stars that grow suspiciously will also take points off, once the radar detects them.
+
+## Daily data and open data
+
+Every night at 03:17 UTC a robot (GitHub Actions) asks the official GitHub API for the data of the whole catalog: stars, forks, issues, dates, license, topics, website, language, the latest release with its files and whether the organization is verified. It works out the status, license, installers and score, saves a snapshot of each project (the history) and publishes the result in [`data/export/proyectos.json`](../data/export/), under CC BY 4.0.
+
+If GitHub fails to return more than 2% of the projects at once, the robot publishes nothing that day, in case the problem is on its side. The figures for each project are those at the moment they were read (`generado` field).
+
 ## Topics
 
 Each subtopic has its own GitHub topics, and each topic belongs to a single subtopic. A project can be in several subtopics; its main one is the one that shares the most topics with it.
@@ -63,4 +97,4 @@ We discard topics that mix unrelated things. For example, `matrix` is also used 
 
 ## Coming soon
 
-The 0-100 score, the detection of possible fake copies (always reviewed by a person before publishing) and the explanatory texts will be documented here once they are live.
+The detection of possible fake copies (always reviewed by a person before publishing), trends and the explanatory texts will be documented here once they are live.
