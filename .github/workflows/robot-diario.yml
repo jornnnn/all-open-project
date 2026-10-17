@@ -35,6 +35,9 @@ jobs:
       - name: Robot diario
         run: pnpm diario
         env:
+          # Token personal de solo lectura (opcional): GitHub frena mucho antes el automático de
+          # Actions. Si falta o caduca, el robot usa el automático, más despacio, y lo avisa en /estado.
+          ROBOT_TOKEN: ${{ secrets.ROBOT_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WORKER_URL: ${{ secrets.WORKER_URL }}
           INGEST_KEY: ${{ secrets.INGEST_KEY }}

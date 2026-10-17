@@ -18,11 +18,16 @@ import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { type ProyectoCatalogo, VERSION_EXPORTACION } from '@aop/core';
 import { z } from 'zod';
-import { leerAnterior, leTocaHoy } from './lib/anterior.ts';
+import { leerAnterior, leTocaHoy, licenciaReutilizable } from './lib/anterior.ts';
 import { construirCatalogo, type EntradaSemilla, licenciasPorRevisar } from './lib/catalogo.ts';
 import { cargarDatos, DIR_DATOS } from './lib/datos.ts';
 import { escribirExportacion } from './lib/exportar.ts';
-import { crearCliente, obtenerReposDiario, obtenerToken, obtenerTopics } from './lib/github.ts';
+import {
+  crearCliente,
+  obtenerReposDiario,
+  obtenerTokenDelRobot,
+  obtenerTopics,
+} from './lib/github.ts';
 import { cargarPlantillas, type RevisionLicencia, revisarLicencias } from './lib/licencias.ts';
 import { type ClienteWorker, crearClienteWorker } from './lib/worker.ts';
 
@@ -127,13 +132,17 @@ async function ejecutar(): Promise<{
   console.log(`Semilla: ${entradas.length} proyectos (${fecha}, ejecución ${id})`);
 
   // 2. GitHub.
-  // Ritmo medido el 17-oct-2026: con el token de Actions y 75 s de respuesta por minuto, GitHub
-  // frenó 11 veces (60 s parado cada una). Se empieza con 60 s por minuto, y cada frenazo lo baja un
-  // 20 %. GitHub limita su tiempo de CPU a 60 s por minuto para GraphQL.
-  const cliente = crearCliente(await obtenerToken(), {
+  // Ritmo medido el 17-oct-2026: con el token de Actions, GitHub frenó a 75, 60, 48 y 38 s de
+  // respuesta por minuto, y no a 31; con un token personal, una sola vez a 90. Cada frenazo cuesta
+  // 60 s parado y baja el ritmo un 20 %, así que se empieza por debajo de esos límites.
+  const { token, tipo } = await obtenerTokenDelRobot((texto) => avisos.push(texto));
+  const cliente = crearCliente(token, {
     pausaMs: 300,
-    presupuestoPorMinutoMs: 60_000,
+    presupuestoPorMinutoMs: tipo === 'actions' ? 30_000 : 75_000,
   });
+  console.log(
+    `  Token: ${tipo === 'actions' ? 'el automático de Actions (ritmo lento)' : 'personal de solo lectura'}`,
+  );
   const { repos, fallidos } = await obtenerReposDiario(
     cliente,
     entradas.map((e) => e.repo),
@@ -174,16 +183,32 @@ async function ejecutar(): Promise<{
     `  Topics: ${nuevos.size} renovados, ${leidos.length - pedir.length} del ${anterior.fecha ?? '—'} (${segundos()} s)`,
   );
 
-  // 3. Licencias que GitHub no reconoce.
-  const pendientes = licenciasPorRevisar(entradas, repos, editorial);
-  let revisiones = new Map<string, RevisionLicencia>();
+  // 3. Licencias que GitHub no reconoce: se revisan las de turno, las nuevas y aquellas en las que
+  //    GitHub dice algo distinto que ayer; el resto conserva la revisión de ayer.
+  const revisiones = new Map<string, RevisionLicencia>();
+  const pendientes = licenciasPorRevisar(entradas, repos, editorial).filter(({ repo: nombre }) => {
+    const repo = repos.get(nombre);
+    const previa = repo
+      ? licenciaReutilizable(anterior.licencias.get(repo.id), repo.id, repo.licencia, fecha)
+      : null;
+    if (previa?.motivo) {
+      revisiones.set(nombre, {
+        categoria: previa.categoria,
+        licencias: previa.licencias,
+        motivo: previa.motivo,
+      });
+    }
+    return !previa;
+  });
+  const reutilizadas = revisiones.size;
   try {
-    revisiones = await revisarLicencias(cliente, pendientes, await cargarPlantillas());
+    const nuevas = await revisarLicencias(cliente, pendientes, await cargarPlantillas());
+    for (const [nombre, revision] of nuevas) revisiones.set(nombre, revision);
   } catch (error) {
     avisos.push(`Hoy no se han podido revisar las licencias: ${(error as Error).message}`);
   }
   console.log(
-    `  Licencias revisadas: ${revisiones.size} de ${pendientes.length} (${segundos()} s)`,
+    `  Licencias: ${revisiones.size - reutilizadas} revisadas hoy y ${reutilizadas} del ${anterior.fecha ?? '—'} (${segundos()} s)`,
   );
 
   // 4. Fichas, con el impulso desde la foto de hace 30 días.
@@ -242,7 +267,9 @@ async function ejecutar(): Promise<{
       pedidos: entradas.length,
       no_encontrados: noEncontrados,
       fallidos: fallidos.size,
+      token: tipo,
       topics_renovados: nuevos.size,
+      licencias_revisadas_hoy: revisiones.size - reutilizadas,
       frenazos: cliente.frenos().veces,
       ritmo_final_s_por_minuto: (cliente.frenos().presupuestoPorMinutoMs ?? 0) / 1000,
       puntos_que_quedan: cliente.restantes(),

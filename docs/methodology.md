@@ -50,7 +50,7 @@ We start from what GitHub says. When GitHub doesn't know, we read the project's 
   - If it mixes both ("AGPL or Elastic, at your choice"), it stays as *other license*: a person decides.
 - **GitHub sees no license.** GitHub only looks at the root folder, so before saying *no license* we look for license files in the whole repository, ignoring folders with other people's code (`node_modules`, `vendor`, `third_party`, fonts…). If there is one in the root with another name (`gpl-3.0.txt`, `EULA.txt`), we read it; if there are only some in subfolders, it stays as *other license* to be reviewed.
 
-Each project explains how its license was decided when GitHub's answer is not enough. Manual corrections are recorded in [`data/editorial.yaml`](../data/editorial.yaml).
+Each project explains how its license was decided when GitHub's answer is not enough. This review is repeated once a week for each project, or the same day if GitHub's answer changes. Manual corrections are recorded in [`data/editorial.yaml`](../data/editorial.yaml).
 
 ## Installers
 

@@ -50,7 +50,7 @@ Partimos de lo que dice GitHub. Cuando GitHub no lo sabe, leemos los archivos de
   - Si mezcla las dos («AGPL o Elastic, a tu elección»), queda como *otra licencia*: lo decide una persona.
 - **GitHub no ve ninguna licencia.** GitHub solo mira la raíz, así que antes de decir *sin licencia* buscamos archivos de licencia en todo el repositorio, sin contar las carpetas de código de otros (`node_modules`, `vendor`, `third_party`, fuentes tipográficas…). Si hay uno en la raíz con otro nombre (`gpl-3.0.txt`, `EULA.txt`), lo leemos; si solo los hay en subcarpetas, queda como *otra licencia* para revisarla.
 
-Cada ficha explica cómo se ha decidido su licencia cuando no basta con lo que dice GitHub. Las correcciones manuales quedan en [`data/editorial.yaml`](../data/editorial.yaml).
+Cada ficha explica cómo se ha decidido su licencia cuando no basta con lo que dice GitHub. Esta revisión se repite una vez por semana para cada proyecto, o el mismo día si GitHub cambia lo que dice. Las correcciones manuales quedan en [`data/editorial.yaml`](../data/editorial.yaml).
 
 ## Instaladores
 

@@ -43,7 +43,7 @@ jobs/              Scripts del robot (Node 24)
   verificar-muestra.ts  Comprueba una muestra de D1 contra GitHub
   lib/github.ts      Cliente GraphQL y REST de solo lectura (reintentos, ritmo, lotes que se parten)
   lib/catalogo.ts    Lógica pura de la ficha diaria de cada proyecto
-  lib/anterior.ts    Datos del día anterior: los topics se renuevan por turnos, una vez por semana
+  lib/anterior.ts    Datos del día anterior: topics y licencias dudosas se renuevan por turnos, cada semana
   lib/licencias.ts   Revisión de las licencias «otra» y «sin licencia» leyendo sus archivos
   lib/worker.ts      Cliente de /ingest (lotes de 200 KB como mucho, por la CPU del Worker)
   lib/exportar.ts    data/export/proyectos.json
@@ -69,7 +69,7 @@ design/maqueta/    Copia de la maqueta aprobada, como referencia visual
 ## Límites del plan gratuito que afectan al código
 - **D1: 100.000 filas escritas y 5 millones leídas al día para toda la cuenta**, compartida con otros proyectos de Marc. Si se pasa, D1 deja de responder hasta las 00:00 UTC. Cada índice suma una fila escrita por cambio: por eso hay pocos índices, el nombre del repo se actualiza aparte y la búsqueda (FTS5) solo se reescribe si cambia el texto. `/api/v1/estado` lee solo las últimas filas de `runs`.
 - **Worker:** 10 ms de CPU y 50 consultas por petición. El Worker no lee el JSON del robot: lo pasa tal cual a D1, **una sola vez** (se guarda en `ingesta_lotes` y las demás consultas lo leen de ahí), y SQLite lo recorre con `json_each`. Medido en Cloudflare: enviarlo una vez por consulta costaba 24-36 ms de CPU por lote; así, 3-4 ms con lotes de 250 KB. El robot manda lotes de 200 KB.
-- **GitHub:** corta las consultas de más de 10 s (por eso, lotes de 25 repos) y limita el tiempo de CPU de GraphQL por minuto, con el token de Actions más que con uno personal. El cliente del robot lleva un presupuesto de tiempo de respuesta por minuto (60 s), lo baja un 20 % cada vez que GitHub frena y para todas sus peticiones mientras tanto. Los topics, el 40 % del coste de la consulta, se renuevan por turnos (una vez por semana cada proyecto).
+- **GitHub:** corta las consultas de más de 10 s (por eso, lotes de 25 repos) y limita el tiempo de CPU de GraphQL por minuto, con el token de Actions más que con uno personal. El robot usa el secreto `ROBOT_TOKEN` (token personal de solo lectura, con el que GitHub frena mucho menos) si existe y sirve; si no, el automático de Actions. Su cliente lleva un presupuesto de tiempo de respuesta por minuto (75 s con el personal, 30 s con el de Actions), lo baja un 20 % cada vez que GitHub frena y para todas sus peticiones mientras tanto. Los topics (el 40 % del coste de la consulta) y la revisión de las licencias dudosas se renuevan por turnos, una vez por semana cada proyecto.
 
 ## Reglas del producto que afectan al código
 - Las cifras y los hechos salen siempre de los datos. La IA solo redacta, y un validador lo comprueba.

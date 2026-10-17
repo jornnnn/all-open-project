@@ -43,6 +43,38 @@ export async function obtenerToken(): Promise<string> {
   );
 }
 
+export interface TokenDelRobot {
+  token: string;
+  /**
+   * Personal (de solo lectura) o el automático de Actions. Con el de Actions, GitHub frena mucho
+   * antes: medido el 17-oct-2026, por encima de ~31 s de respuesta por minuto; con uno personal,
+   * apenas a 90.
+   */
+  tipo: 'personal' | 'actions';
+}
+
+/**
+ * Token del robot: el personal de solo lectura (ROBOT_TOKEN) si lo hay y sirve; si no (no está o
+ * ha caducado), el de siempre, avisando para renovarlo.
+ */
+export async function obtenerTokenDelRobot(
+  avisar: (texto: string) => void,
+): Promise<TokenDelRobot> {
+  const personal = process.env.ROBOT_TOKEN?.trim();
+  if (personal) {
+    const prueba = await fetch(`${URL_API}/rate_limit`, {
+      headers: { authorization: `bearer ${personal}`, 'user-agent': AGENTE },
+    });
+    if (prueba.ok) return { token: personal, tipo: 'personal' };
+    avisar(
+      `El token personal del robot (ROBOT_TOKEN) no sirve (GitHub responde ${prueba.status}; ¿ha caducado?): se usa el de Actions, más lento`,
+    );
+  }
+  const token = await obtenerToken();
+  const deActions = process.env.GITHUB_ACTIONS === 'true' && token === process.env.GITHUB_TOKEN;
+  return { token, tipo: deActions ? 'actions' : 'personal' };
+}
+
 interface ErrorGraphql {
   type?: string;
   message: string;

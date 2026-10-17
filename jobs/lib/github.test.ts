@@ -6,6 +6,7 @@ import {
   obtenerDatosActuales,
   obtenerRepos,
   obtenerReposDiario,
+  obtenerTokenDelRobot,
   obtenerTopics,
 } from './github.ts';
 
@@ -264,5 +265,50 @@ describe('obtenerTopics', () => {
         ['o/sin-topics', []],
       ]),
     );
+  });
+});
+
+describe('obtenerTokenDelRobot', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  const github = (status: number) =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}', { status })),
+    );
+
+  it('usa el token personal de solo lectura si sirve', async () => {
+    vi.stubEnv('ROBOT_TOKEN', 'personal');
+    vi.stubEnv('GITHUB_TOKEN', 'de-actions');
+    github(200);
+    const avisos: string[] = [];
+    expect(await obtenerTokenDelRobot((a) => avisos.push(a))).toEqual({
+      token: 'personal',
+      tipo: 'personal',
+    });
+    expect(avisos).toEqual([]);
+  });
+
+  it('si el personal ha caducado, avisa y usa el de Actions', async () => {
+    vi.stubEnv('ROBOT_TOKEN', 'caducado');
+    vi.stubEnv('GITHUB_TOKEN', 'de-actions');
+    vi.stubEnv('GITHUB_ACTIONS', 'true');
+    github(401);
+    const avisos: string[] = [];
+    expect(await obtenerTokenDelRobot((a) => avisos.push(a))).toEqual({
+      token: 'de-actions',
+      tipo: 'actions',
+    });
+    expect(avisos[0]).toContain('ROBOT_TOKEN');
+  });
+
+  it('sin token personal, en Actions usa el automático', async () => {
+    vi.stubEnv('ROBOT_TOKEN', '');
+    vi.stubEnv('GITHUB_TOKEN', 'de-actions');
+    vi.stubEnv('GITHUB_ACTIONS', 'true');
+    expect(await obtenerTokenDelRobot(() => {})).toEqual({ token: 'de-actions', tipo: 'actions' });
   });
 });
