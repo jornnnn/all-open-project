@@ -103,6 +103,9 @@ describe('Worker de revisión: quién entra', () => {
     expect(r.headers.get('x-frame-options')).toBe('DENY');
     expect(r.headers.get('cache-control')).toBe('no-store');
     expect(r.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
+    // Con «no-referrer», los navegadores mandan los formularios con `Origin: null` y la protección
+    // contra CSRF los rechazaba todos (comprobado con Chrome el 18-oct-2026).
+    expect(r.headers.get('referrer-policy')).toBe('same-origin');
     expect(await r.text()).toContain('No hay ninguna posible copia esperando');
   });
 });

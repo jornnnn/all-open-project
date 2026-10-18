@@ -48,7 +48,10 @@ const CABECERAS = {
     "default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
   'x-frame-options': 'DENY',
   'x-content-type-options': 'nosniff',
-  'referrer-policy': 'no-referrer',
+  // «same-origin», no «no-referrer»: con «no-referrer» el navegador envía los formularios con
+  // `Origin: null` y la protección contra CSRF los rechaza todos (pasó el 18-oct-2026). Con
+  // «same-origin», la propia página recibe su origen y las webs externas siguen sin saber nada.
+  'referrer-policy': 'same-origin',
   'cache-control': 'no-store',
   'x-robots-tag': 'noindex, nofollow',
 };
